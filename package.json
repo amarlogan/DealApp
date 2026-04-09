@@ -1,0 +1,13 @@
+{
+  "name": "deal-dash-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:scrapers": "npm run start --workspace=services/scrapers"
+  }
+}
