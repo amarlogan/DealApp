@@ -1,6 +1,15 @@
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy_anon_key';
+export const createClient = () =>
+  createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// Singleton for non-SSR usage
+let _client: ReturnType<typeof createClient> | null = null;
+
+export const supabase = () => {
+  if (!_client) _client = createClient();
+  return _client;
+};

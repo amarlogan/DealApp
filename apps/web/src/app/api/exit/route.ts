@@ -1,47 +1,72 @@
-import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseAdmin } from "@/lib/supabase-server";
 
-// Simple in-memory rate limiting map for demonstration. 
-// In production, use Redis (e.g. Upstash) or Supabase table.
-const rateLimitMap = new Map<string, { count: number, timestamp: number }>();
+// Rate limiter (swap for Redis/Upstash in production)
+const rateMap = new Map<string, { count: number; ts: number }>();
+const WINDOW_MS  = 60_000;
+const MAX_CLICKS = 20;
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const dealId = searchParams.get('dealId');
-  const ip = request.headers.get('x-forwarded-for') || 'anonymous_ip';
+export async function GET(req: NextRequest) {
+  const { searchParams } = req.nextUrl;
+  const dealId = searchParams.get("dealId");
 
-  // Rate Limiting Logic: Max 10 clicks per IP per minute
+  // ── Rate-limit by IP ──────────────────────────────────────────────────────
+  const ip  = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
   const now = Date.now();
-  const rateData = rateLimitMap.get(ip) || { count: 0, timestamp: now };
-  
-  if (now - rateData.timestamp < 60000) {
-    if (rateData.count >= 10) {
-      return NextResponse.json({ error: "Rate limit exceeded. Please back off." }, { status: 429 });
+  const e   = rateMap.get(ip) ?? { count: 0, ts: now };
+
+  if (now - e.ts < WINDOW_MS) {
+    if (e.count >= MAX_CLICKS) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
-    rateData.count++;
+    e.count++;
   } else {
-    rateData.count = 1;
-    rateData.timestamp = now;
+    e.count = 1; e.ts = now;
   }
-  rateLimitMap.set(ip, rateData);
+  rateMap.set(ip, e);
 
-  if (!dealId) {
-    return NextResponse.redirect(new URL('/', request.url));
+  if (!dealId) return NextResponse.redirect(new URL("/", req.url));
+
+  // ── Resolve affiliate URL from Supabase ───────────────────────────────────
+  let affiliateUrl: string | null = null;
+
+  try {
+    const supabase = createSupabaseAdmin();
+    const { data } = await supabase
+      .from("deals")
+      .select("affiliate_url, external_url")
+      .eq("id", dealId)
+      .single();
+
+    // Prefer affiliate URL; fall back to direct merchant URL
+    affiliateUrl = data?.affiliate_url || data?.external_url || null;
+
+    // ── Log click ────────────────────────────────────────────────────────────
+    if (data) {
+      await supabase.from("deal_clicks").insert({
+        deal_id:    dealId,
+        ip_address: ip,
+        user_agent: req.headers.get("user-agent") ?? "",
+        referer:    req.headers.get("referer") ?? "",
+      }).then(() => null); // fire-and-forget
+    }
+  } catch (err) {
+    console.error("[exit] Supabase error:", err);
+    // Fallback: try deals.json
+    try {
+      const base = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+      const res  = await fetch(`${base}/data/deals.json`);
+      if (res.ok) {
+        const deals = await res.json();
+        const d = deals.find((x: any) => x.id === dealId);
+        affiliateUrl = d?.affiliate_url ?? d?.external_url ?? null;
+      }
+    } catch {}
   }
 
-  // Fetch actual deal URL from DB securely to prevent open redirects
-  const { data, error } = await supabase
-    .from('deals')
-    .select('external_url')
-    .eq('id', dealId)
-    .single();
-
-  if (error || !data?.external_url) {
-    console.error("Deal not found for exit redirect", error);
-    return NextResponse.redirect(new URL('/?error=notfound', request.url));
+  if (!affiliateUrl) {
+    return NextResponse.redirect(new URL(`/?error=notfound`, req.url));
   }
 
-  // TODO: Log tracking metrics here (e.g. Supabase Edge Function or standard insert to 'clicks' table)
-
-  return NextResponse.redirect(data.external_url);
+  return NextResponse.redirect(affiliateUrl, { status: 302 });
 }
