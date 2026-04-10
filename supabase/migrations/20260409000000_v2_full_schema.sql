@@ -44,6 +44,29 @@ CREATE TABLE IF NOT EXISTS deals (
     updated_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- ── Patch V1 deals table with V2 columns (idempotent) ────────────────────────
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS affiliate_url       TEXT;
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS image_url           TEXT;
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS category_id         TEXT NOT NULL DEFAULT 'other';
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS badge               TEXT;
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS promo_code          TEXT;
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS in_stock            BOOLEAN DEFAULT true;
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS is_popular          BOOLEAN DEFAULT false;
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS rating              NUMERIC(3,1) DEFAULT 0;
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS review_count        INTEGER DEFAULT 0;
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS location            TEXT;
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS external_id         TEXT;
+ALTER TABLE deals ADD COLUMN IF NOT EXISTS expires_at          TIMESTAMPTZ;
+-- Add UNIQUE constraint on external_id if not already present
+DO $$ BEGIN
+  ALTER TABLE deals ADD CONSTRAINT deals_external_id_key UNIQUE (external_id);
+EXCEPTION WHEN duplicate_table THEN NULL;
+          WHEN duplicate_object THEN NULL; END $$;
+-- Rename old category column if it exists (V1 used TEXT[], V2 uses category_id TEXT)
+DO $$ BEGIN
+  ALTER TABLE deals RENAME COLUMN category TO category_old;
+EXCEPTION WHEN undefined_column THEN NULL; END $$;
+
 -- ── Price History ─────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS price_history (
     id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -101,6 +124,9 @@ CREATE TABLE IF NOT EXISTS price_alerts (
     notified_at  TIMESTAMPTZ,           -- last time notification was sent
     created_at   TIMESTAMPTZ DEFAULT NOW()
 );
+-- ── Patch V1 price_alerts table with V2 columns ───────────────────────────────
+ALTER TABLE price_alerts ADD COLUMN IF NOT EXISTS is_active    BOOLEAN DEFAULT true;
+ALTER TABLE price_alerts ADD COLUMN IF NOT EXISTS notified_at  TIMESTAMPTZ;
 
 -- ── Deal Clicks (affiliate tracking) ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS deal_clicks (
@@ -174,6 +200,10 @@ ALTER TABLE deal_clicks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles    ENABLE ROW LEVEL SECURITY;
 
 -- Deals: anyone can read active deals
+-- Drop V1 policy names first (idempotent)
+DROP POLICY IF EXISTS read_all_deals ON deals;
+DROP POLICY IF EXISTS user_favorites_isolation ON favorites;
+DROP POLICY IF EXISTS user_price_alerts_isolation ON price_alerts;
 DROP POLICY IF EXISTS rls_deals_read ON deals;
 CREATE POLICY rls_deals_read ON deals
     FOR SELECT USING (status = 'active');
@@ -278,7 +308,7 @@ VALUES
    '50% Parley Ocean Plastic. Responsive BOOST midsole. Continental rubber outsole.',
    'Adidas', 'https://adidas.com/us/ultraboost-22/GX5462.html',
    'https://adidas.com/us/ultraboost-22/GX5462.html?cp=REPLACE_TAG',
-   'https://images.unsplash.com/photo-1608231387042-66d1773d3028?w=800&q=80',
+   'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80',
    99.99, 190.00, 'shoes', 'Hot Deal', 4.8, 12044, true, true, 'adidas-GX5462'),
 
   ('H&M Slim-Fit Stretch Suit — Navy Blue',

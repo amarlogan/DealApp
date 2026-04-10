@@ -17,9 +17,11 @@ const MERCHANT_STYLES: Record<string, { cls: string; label: string; flag?: strin
 export default function DealCard({
   deal,
   featured = false,
+  layout = "carousel",
 }: {
   deal: any;
   featured?: boolean;
+  layout?: "carousel" | "grid";
 }) {
   const { user, openLogin } = useAuth();
   const [isFavorite, setIsFavorite] = useState(false);
@@ -63,15 +65,17 @@ export default function DealCard({
   ];
   const fallback = gradients[parseInt(deal.id?.replace(/\D/g, "") || "0") % gradients.length];
 
-  const cardW = featured ? "w-[340px] sm:w-[370px]" : "w-[260px] sm:w-[285px]";
+  const cardW = layout === "grid" 
+    ? "w-full h-full" 
+    : featured ? "w-[340px] sm:w-[370px] flex-shrink-0" : "w-[260px] sm:w-[285px] flex-shrink-0";
   const imgH  = featured ? "h-52" : "h-44";
-  const bodyH = featured ? "min-h-[192px]" : "min-h-[172px]";
+  const bodyH = featured && layout !== "grid" ? "min-h-[192px]" : "min-h-[172px]";
 
   return (
     <a
       href={`/deal/${deal.id}`}
       id={`deal-card-${deal.id}`}
-      className={`deal-card block group flex-shrink-0 bg-white rounded-2xl overflow-hidden cursor-pointer ${cardW}`}
+      className={`deal-card block group bg-white rounded-2xl overflow-hidden cursor-pointer ${cardW}`}
     >
       {/* ── Image ── */}
       <div className={`relative ${imgH} w-full overflow-hidden bg-gray-100`}>
