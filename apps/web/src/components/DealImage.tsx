@@ -1,5 +1,4 @@
-"use client";
-
+import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { Tag } from "lucide-react";
 
@@ -17,16 +16,6 @@ export default function DealImage({
   fallbackIconSize?: number;
 }) {
   const [error, setError] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
-
-  // Catch images that failed to load before React hydration could attach onError
-  useEffect(() => {
-    if (imgRef.current) {
-      if (imgRef.current.complete && imgRef.current.naturalWidth === 0) {
-        setError(true);
-      }
-    }
-  }, [src]);
 
   if (error || !src) {
     return (
@@ -37,13 +26,16 @@ export default function DealImage({
   }
 
   return (
-    <img
-      ref={imgRef}
-      src={src}
-      alt={alt}
-      className={className}
-      loading="lazy"
-      onError={() => setError(true)}
-    />
+    <div className={`relative ${className}`}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        className="object-cover"
+        onError={() => setError(true)}
+        loading="lazy"
+      />
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 import HomeClient from "./HomeClient";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300; // 5 minutes fresh
 
 export default async function Home() {
   const supabase = createSupabaseAdmin();

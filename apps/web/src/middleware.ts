@@ -24,7 +24,13 @@ export async function middleware(request: NextRequest) {
   );
 
   // Refresh session — keeps auth alive without page reload
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Route protection
+  const url = new URL(request.url);
+  if (url.pathname.startsWith('/profile') && !user) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
 
   return response;
 }
