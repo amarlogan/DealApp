@@ -68,3 +68,31 @@ The repository is a monorepo setup containing the backend, frontend, and our fut
 3. Open `http://localhost:3000` in your web browser. 
 4. **Test the Data:** You should instantly see carousels packed with Electronics, Home & Kitchen, Toys, and Sports deals. If the page is blank, confirm that the database seeded properly using Supabase Studio at `http://127.0.0.1:54323`.
 5. **Test Auth:** Click "Sign In" at the top right. Enter a dummy email (e.g. `test@deal.com` and a password). The Local Supabase Auth server handles mock confirmations automatically, meaning you can instantly test the bookmark component without needing a real SMTP server.
+---
+
+## 📅 Content Management & Seasonal Logic
+
+The homepage is dynamic and controlled primarily through the Supabase database. This allows for updating sections, running seasonal sales, and featuring categories without code redeploys.
+
+### 1. Managing Seasonal Sales
+Seasonal events (like "Spring Sale") are managed through two tables:
+- **`seasons`**: Defines the event name, duration (`start_date` to `end_date`), and visual theme (`css_variables` like primary colors).
+- **`deal_seasons`**: A bridge table that maps specific deals to specific seasons.
+    - *To add a deal to a season*: Insert a record with the `deal_id` and `season_id`.
+    - *To remove a deal*: Delete the corresponding record from this table.
+
+### 2. Customizing HomePage Sections
+The order and content of carousels on the homepage are driven by the **`landing_sections`** table:
+- **`title`**: The display name of the section (defaults to category/season name if null).
+- **`type`**: Automatically handled—if `category_id` is set, it pulls by category; if `season_id` is set, it pulls by season.
+- **`sort_order`**: Determines the vertical position on the homepage (lower numbers appear first).
+- **`max_items`**: Limits how many deals show up in the carousel (default 12-16).
+
+### 3. "Top Deals Today" Logic
+The "Top Deals Today" section is special and is filtered dynamically in `apps/web/src/app/api/deals/route.ts`. It specifically looks for deals where:
+- `status = 'active'`
+- `in_stock = true`
+- (`is_popular = true` OR `discount_percentage >= 30`)
+
+### 4. Updating Limits
+If you notice sections are empty, ensure the global fetch limit in `apps/web/src/app/page.tsx` is sufficient (currently set to 200) to cover the varied categories in your `landing_sections`.
