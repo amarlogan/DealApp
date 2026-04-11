@@ -28,8 +28,24 @@ export async function middleware(request: NextRequest) {
 
   // Route protection
   const url = new URL(request.url);
-  if (url.pathname.startsWith('/profile') && !user) {
+  const isProfile = url.pathname.startsWith('/profile');
+  const isAdmin   = url.pathname.startsWith('/admin');
+
+  if ((isProfile || isAdmin) && !user) {
     return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // Admin role check
+  if (isAdmin) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user!.id)
+      .single();
+
+    if (profile?.role !== 'admin') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
   }
 
   return response;

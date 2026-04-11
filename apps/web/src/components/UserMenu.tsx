@@ -39,6 +39,7 @@ export default function UserMenu() {
     .toUpperCase();
 
   const displayName = user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "User";
+  const { role } = useAuth();
 
   return (
     <div ref={ref} className="relative hidden sm:block">
@@ -61,6 +62,18 @@ export default function UserMenu() {
           </div>
 
           <div className="py-1">
+            {role === 'admin' && (
+              <Link
+                href="/admin"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors font-black border-b border-gray-100"
+              >
+                <div className="w-4 h-4 rounded-sm bg-emerald-600 flex items-center justify-center">
+                   <Settings size={10} className="text-white" />
+                </div>
+                Admin Dashboard
+              </Link>
+            )}
             {[
               { href: "/profile",        icon: <User size={15} />,    label: "My Dashboard" },
               { href: "/profile/saved",  icon: <Heart size={15} />,   label: "Saved Deals" },
