@@ -5,7 +5,8 @@ import ThemeProvider from "@/components/ThemeProvider";
 import Providers from "@/components/Providers";
 import UserMenu from "@/components/UserMenu";
 import { ShoppingCart, Bell, Search, MapPin, Percent, ChevronDown, ChevronRight } from "lucide-react";
-import { ACTIVE_CATEGORIES, UPCOMING_CATEGORIES } from "@/config/categories";
+import { createSupabaseAdmin } from "@/lib/supabase-server";
+import SearchBar from "@/components/SearchBar";
 
 const inter  = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -23,7 +24,21 @@ const FOOTER_LINKS = {
   "Support":     ["Help Center", "Contact Us", "Report a Problem", "Accessibility", "Privacy Policy", "Terms"],
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const supabase = createSupabaseAdmin();
+  
+  // Fetch dynamic navigation mapping
+  const { data: navItems } = await supabase
+    .from("navigation_items")
+    .select(`
+      id, href, label_override, is_highlighted, sort_order, category_id,
+      categories ( id, label, emoji, phase )
+    `)
+    .eq("is_visible", true)
+    .order("sort_order", { ascending: true });
+
+  const navs = navItems || [];
+
   return (
     <html lang="en">
       <body className={`${inter.variable} ${outfit.variable} font-sans antialiased min-h-screen flex flex-col bg-[#f0f7fb]`}>
@@ -52,20 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
                 {/* Search */}
                 <div className="flex-1 max-w-2xl hidden md:flex">
-                  <div className="flex w-full rounded-full overflow-hidden border-2 border-gray-200 hover:border-[#53A318] focus-within:border-[#53A318] transition-colors shadow-sm">
-                    <div className="flex-1 relative">
-                      <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                      <input
-                        id="main-search"
-                        type="search"
-                        placeholder="Search deals, brands, categories…"
-                        className="w-full py-2.5 pl-10 pr-4 outline-none text-gray-700 placeholder-gray-400 text-sm font-medium bg-transparent"
-                      />
-                    </div>
-                    <button id="search-button" aria-label="Search" className="bg-[#53A318] hover:bg-[#3d7c10] px-5 flex items-center justify-center flex-shrink-0 transition-colors">
-                      <Search size={18} className="text-white" strokeWidth={2.5} />
-                    </button>
-                  </div>
+                  <SearchBar />
                 </div>
 
                 {/* Right icons */}
@@ -74,32 +76,42 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <Bell size={20} />
                     <span className="absolute top-1.5 right-1.5 bg-red-500 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-black">3</span>
                   </button>
-                  {/* UserMenu shows Sign In when logged out, avatar dropdown when logged in */}
                   <UserMenu />
                 </div>
               </div>
 
-              {/* ── Category Nav (product categories only) ── */}
+              {/* ── Dynamic Category Nav ── */}
               <nav aria-label="Product categories" className="max-w-7xl mx-auto px-4 sm:px-6 py-1.5 hidden lg:flex items-center gap-1 border-t border-gray-100 overflow-x-auto hide-scrollbar">
-                <a href="/deals" className="py-1.5 px-3 text-sm font-bold whitespace-nowrap rounded-full text-[#53A318] bg-[#e8f4e0] transition-all">
-                  🔥 All Deals
-                </a>
-                {ACTIVE_CATEGORIES.map(cat => (
-                  <a
-                    key={cat.id}
-                    href={`/category/${cat.id}`}
-                    className="py-1.5 px-3 text-sm font-semibold whitespace-nowrap rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all"
-                  >
-                    {cat.emoji} {cat.label}
-                  </a>
-                ))}
-                <div className="w-px h-4 bg-gray-200 mx-1 flex-shrink-0" />
-                {UPCOMING_CATEGORIES.map(cat => (
-                  <span key={cat.id} title="Coming soon!" className="py-1.5 px-3 text-sm font-semibold whitespace-nowrap rounded-full text-gray-400 flex items-center gap-1.5 cursor-not-allowed select-none">
-                    {cat.emoji} {cat.label}
-                    <span className="coming-soon-badge">Soon</span>
-                  </span>
-                ))}
+                {navs.map((nav: any) => {
+                  const label = nav.label_override || (nav.categories?.label ?? "Unknown");
+                  const isHighlighted = nav.is_highlighted;
+                  const isUpcoming = nav.categories?.phase === 2;
+                  const href = nav.href || (nav.category_id ? `/category/${nav.category_id}` : "#");
+
+                  if (isUpcoming) {
+                    return (
+                      <span key={nav.id} title="Coming soon!" className="py-1.5 px-3 text-sm font-semibold whitespace-nowrap rounded-full text-gray-400 flex items-center gap-1.5 cursor-not-allowed select-none">
+                        {nav.categories?.emoji} {label}
+                        <span className="coming-soon-badge">Soon</span>
+                      </span>
+                    );
+                  }
+
+                  return (
+                    <a
+                      key={nav.id}
+                      href={href}
+                      className={
+                        isHighlighted
+                          ? "py-1.5 px-3 text-sm font-bold whitespace-nowrap rounded-full text-[#53A318] bg-[#e8f4e0] transition-all"
+                          : "py-1.5 px-3 text-sm font-semibold whitespace-nowrap rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all"
+                      }
+                    >
+                      {nav.categories?.emoji && !isHighlighted ? `${nav.categories.emoji} ` : ""}
+                      {label}
+                    </a>
+                  );
+                })}
               </nav>
             </header>
 

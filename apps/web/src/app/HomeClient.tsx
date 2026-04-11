@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import DealCard from "@/components/DealCard";
 import { ChevronRight, ChevronLeft, Sparkles, Zap, TrendingUp, Percent } from "lucide-react";
-import { ACTIVE_CATEGORIES, UPCOMING_CATEGORIES, HERO_COPY, getCategoryEmoji } from "@/config/categories";
+import { HERO_COPY } from "@/config/categories";
+import Link from "next/link";
 
 type Deal = {
   id: string;
@@ -11,7 +12,7 @@ type Deal = {
   description?: string;
   merchant: string;
   category_id: string;
-  category?: string;           // fallback key from deals.json
+  category?: string;
   current_price: number;
   original_price: number;
   discount_percentage: number;
@@ -27,6 +28,10 @@ type Deal = {
   badge?: string | null;
   location?: string | null;
 };
+
+// Extracted from DB types
+type UICategory = { id: string; label: string; emoji: string; phase: number; description?: string };
+type LandingSection = { id: string; title: string | null; sort_order: number; category_id: string; max_items: number; categories?: UICategory };
 
 function Carousel({ title, icon, deals, featured = false, seeAllHref = "#" }: {
   title: string; icon: React.ReactNode; deals: Deal[]; featured?: boolean; seeAllHref?: string;
@@ -78,21 +83,31 @@ function useCountdown(h: number, m: number, s: number) {
   };
 }
 
-// Category promo tiles — product categories, not stores
-const CATEGORY_TILES = [
-  { id: "electronics",  emoji: "⚡", title: "Electronics",    sub: "TVs, phones & more",         from: "from-indigo-500",  to: "to-blue-600" },
-  { id: "home-kitchen", emoji: "🏠", title: "Home & Kitchen",  sub: "Appliances & décor",          from: "from-emerald-500", to: "to-teal-600" },
-  { id: "fashion",      emoji: "👗", title: "Fashion",         sub: "Clothing & accessories",      from: "from-rose-400",    to: "to-pink-500" },
-  { id: "shoes",        emoji: "👟", title: "Shoes",           sub: "Sneakers & footwear",         from: "from-slate-600",   to: "to-gray-700" },
+const TILE_GRADIENTS = [
+  { from: "from-indigo-500",  to: "to-blue-600" },
+  { from: "from-emerald-500", to: "to-teal-600" },
+  { from: "from-rose-400",    to: "to-pink-500" },
+  { from: "from-slate-600",   to: "to-gray-700" },
 ];
 
-import Link from "next/link";
-
-export default function HomeClient({ initialDeals }: { initialDeals: Deal[] }) {
+export default function HomeClient({ 
+  initialDeals,
+  landingSections,
+  topCategories,
+  upcomingCategories
+}: { 
+  initialDeals: Deal[];
+  landingSections: LandingSection[];
+  topCategories: UICategory[];
+  upcomingCategories: UICategory[];
+}) {
   const deals = initialDeals;
   const { hh, mm, ss }   = useCountdown(4, 23, 17);
 
-  const byCat = (id: string) => deals.filter(d => (d.category_id ?? d.category) === id);
+  const byCat = (id: string, max?: number) => {
+    const arr = deals.filter(d => (d.category_id ?? d.category) === id);
+    return max ? arr.slice(0, max) : arr;
+  };
   const featured   = deals.filter(d => d.is_popular || d.isPopular || (d.discount_percentage ?? 0) >= 30);
   const flashDeals = deals.filter(d => (d.discount_percentage ?? 0) >= 38);
 
@@ -140,16 +155,19 @@ export default function HomeClient({ initialDeals }: { initialDeals: Deal[] }) {
         </div>
       </div>
 
-      {/* ── Category Tiles ── */}
+      {/* ── Dynamic Category Tiles ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {CATEGORY_TILES.map(tile => (
-          <Link key={tile.id} href={`/category/${tile.id}`}
-            className={`bg-gradient-to-br ${tile.from} ${tile.to} rounded-2xl p-5 text-white hover:shadow-lg hover:scale-[1.02] transition-all duration-300`}>
-            <div className="text-3xl mb-2">{tile.emoji}</div>
-            <div className="font-black text-base leading-tight">{tile.title}</div>
-            <div className="text-xs font-medium text-white/80 mt-0.5">{tile.sub}</div>
-          </Link>
-        ))}
+        {topCategories.map((tile, i) => {
+          const grad = TILE_GRADIENTS[i % TILE_GRADIENTS.length];
+          return (
+            <Link key={tile.id} href={`/category/${tile.id}`}
+              className={`bg-gradient-to-br ${grad.from} ${grad.to} rounded-2xl p-5 text-white hover:shadow-lg hover:scale-[1.02] transition-all duration-300`}>
+              <div className="text-3xl mb-2">{tile.emoji}</div>
+              <div className="font-black text-base leading-tight">{tile.label}</div>
+              <div className="text-xs font-medium text-white/80 mt-0.5 line-clamp-1">{tile.description ?? "Top Deals"}</div>
+            </Link>
+          );
+        })}
       </div>
 
       {/* ── Flash Deals Timer ── */}
@@ -175,32 +193,49 @@ export default function HomeClient({ initialDeals }: { initialDeals: Deal[] }) {
         </div>
       )}
 
-      {/* ── Deal Carousels — by product category ── */}
+      {/* ── Deal Carousels — Database Driven ── */}
       <div id="deals" className="space-y-0">
         <Carousel title="Top Deals Today 🔥" icon={<TrendingUp size={22}/>} deals={featured} featured seeAllHref="/deals" />
-        {ACTIVE_CATEGORIES.map(cat => (
-          <Carousel
-            key={cat.id}
-            title={cat.label}
-            icon={<span className="text-xl">{cat.emoji}</span>}
-            deals={byCat(cat.id)}
-            seeAllHref={`/category/${cat.id}`}
-          />
-        ))}
+        
+        {landingSections.map(sec => {
+          const cat = sec.categories;
+          if (!cat) return null;
+          return (
+            <Carousel
+              key={sec.id}
+              title={sec.title || cat.label}
+              icon={<span className="text-xl">{cat.emoji}</span>}
+              deals={byCat(sec.category_id, sec.max_items)}
+              seeAllHref={`/category/${sec.category_id}`}
+            />
+          );
+        })}
+      </div>
+
+      {/* "See more categories" Section requested by user */}
+      <div className="py-6 flex justify-center">
+        <Link 
+          href="/deals" 
+          className="bg-white border-2 border-gray-200 text-gray-700 hover:border-[#53A318] hover:text-[#53A318] font-bold py-3 px-8 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-2"
+        >
+          View All Categories & Deals <ChevronRight size={18} />
+        </Link>
       </div>
 
       {/* ── Coming Soon Section ── */}
-      <div className="section-box text-center py-8">
-        <h2 className="text-xl font-black text-gray-900 mb-2">More Categories Coming Soon 🚀</h2>
-        <p className="text-gray-500 text-sm mb-5">We're adding beauty, food, travel & local deals. Stay tuned!</p>
-        <div className="flex justify-center flex-wrap gap-3">
-          {UPCOMING_CATEGORIES.map(cat => (
-            <div key={cat.id} className="flex items-center gap-2 bg-gray-100 text-gray-500 px-4 py-2 rounded-full text-sm font-semibold">
-              {cat.emoji} {cat.label} <span className="coming-soon-badge">Soon</span>
-            </div>
-          ))}
+      {upcomingCategories.length > 0 && (
+        <div className="section-box text-center py-8">
+          <h2 className="text-xl font-black text-gray-900 mb-2">More Categories Coming Soon 🚀</h2>
+          <p className="text-gray-500 text-sm mb-5">We're adding beauty, food, travel & local deals. Stay tuned!</p>
+          <div className="flex justify-center flex-wrap gap-3">
+            {upcomingCategories.map(cat => (
+              <div key={cat.id} className="flex items-center gap-2 bg-gray-100 text-gray-500 px-4 py-2 rounded-full text-sm font-semibold">
+                {cat.emoji} {cat.label} <span className="coming-soon-badge">Soon</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── Newsletter ── */}
       <div className="bg-gradient-to-br from-[#53A318] to-[#2d7a00] rounded-3xl p-8 lg:p-12 text-white text-center shadow-xl">

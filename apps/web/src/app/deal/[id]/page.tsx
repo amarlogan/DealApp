@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { ExternalLink, Star, Heart, ArrowLeft, Tag, Shield, Truck } from "lucide-react";
+import { ExternalLink, Star, Heart, ArrowLeft, Shield, Truck, Tag } from "lucide-react";
+import DealImage from "@/components/DealImage";
 import type { Metadata } from "next";
 
 type Deal = {
@@ -84,17 +85,13 @@ export default async function DealDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
         {/* ── Left: Image ── */}
         <div className="relative rounded-3xl overflow-hidden bg-gray-100 shadow-inner min-h-[360px] lg:min-h-[460px]">
-          {deal.image_url ? (
-            <img
-              src={deal.image_url}
-              alt={deal.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Tag size={64} className="text-gray-300" />
-            </div>
-          )}
+          <DealImage 
+            src={deal.image_url} 
+            alt={deal.title}
+            className="w-full h-full object-cover"
+            fallbackClassName="w-full h-full flex items-center justify-center"
+            fallbackIconSize={64}
+          />
 
           {/* Discount ribbon */}
           {deal.discount_percentage > 0 && (

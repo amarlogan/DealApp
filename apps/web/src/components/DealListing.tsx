@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DealCard from "./DealCard";
 import { Loader2, ArrowDownWideNarrow } from "lucide-react";
 
@@ -23,7 +23,17 @@ type Deal = {
 
 type SortOption = "discount_percentage" | "price_asc" | "price_desc" | "newest";
 
-export default function DealListing({ title, categoryId, initialDeals = [] }: { title: string; categoryId?: string; initialDeals?: Deal[] }) {
+export default function DealListing({ 
+  title, 
+  categoryId, 
+  searchQuery,
+  initialDeals = [] 
+}: { 
+  title: string; 
+  categoryId?: string; 
+  searchQuery?: string;
+  initialDeals?: Deal[] 
+}) {
   const [deals, setDeals] = useState<Deal[]>(initialDeals);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<SortOption>("discount_percentage");
@@ -32,7 +42,17 @@ export default function DealListing({ title, categoryId, initialDeals = [] }: { 
   const [loadingMore, setLoadingMore] = useState(false);
   // Default hasMore based on initial fetch size
   const [hasMore, setHasMore] = useState(initialDeals.length === 24);
-  const [isFirstRender, setIsFirstRender] = useState(true);
+  const isFirstRender = useRef(true);
+
+  // Sync state if initialDeals change via prop (e.g. Next.js navigation)
+  useEffect(() => {
+    if (!isFirstRender.current) {
+      setDeals(initialDeals);
+      setHasMore(initialDeals.length === 24);
+      setPage(1);
+      setSort("discount_percentage");
+    }
+  }, [initialDeals]);
 
   const fetchDeals = async (p: number, currentSort: SortOption, reset = false) => {
     try {
@@ -45,6 +65,7 @@ export default function DealListing({ title, categoryId, initialDeals = [] }: { 
         sort: currentSort,
       });
       if (categoryId) params.append("category", categoryId);
+      if (searchQuery) params.append("q", searchQuery);
 
       const res = await fetch(`/api/deals?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch");
@@ -63,7 +84,18 @@ export default function DealListing({ title, categoryId, initialDeals = [] }: { 
       if (reset) {
          fetch("/data/deals.json").then(r => r.json()).then(offlineData => {
            let filtered = offlineData;
-           if (categoryId) filtered = filtered.filter((d: any) => d.category_id === categoryId || d.category === categoryId);
+           if (categoryId) {
+             filtered = filtered.filter((d: any) => d.category_id === categoryId || d.category === categoryId);
+           }
+           
+           // Apply manual sorting for offline fallback
+           filtered.sort((a: any, b: any) => {
+             if (currentSort === "price_asc") return a.current_price - b.current_price;
+             if (currentSort === "price_desc") return b.current_price - a.current_price;
+             if (currentSort === "newest") return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+             return (b.discount_percentage || 0) - (a.discount_percentage || 0); // default highest discount
+           });
+           
            setDeals(filtered);
            setHasMore(false);
          }).catch(() => setDeals([]));
@@ -74,15 +106,17 @@ export default function DealListing({ title, categoryId, initialDeals = [] }: { 
     }
   };
 
-  // Initial load or sort change
+  // Run on sort change or categoryId change, skip initial load if we have data
   useEffect(() => {
-    if (isFirstRender) {
-      setIsFirstRender(false);
-      if (initialDeals.length > 0) return; // skip initial fetch if SSR provided data
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      if (initialDeals.length > 0) return;
     }
+    
     setPage(1);
     fetchDeals(1, sort, true);
-  }, [sort, categoryId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sort, categoryId, searchQuery]);
 
   const loadMore = () => {
     const next = page + 1;

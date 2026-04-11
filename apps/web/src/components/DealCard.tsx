@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, Star, Flame, Zap, Tag, Bell } from "lucide-react";
+import { Heart, Star, Flame, Zap, Bell, Tag } from "lucide-react";
 import { useAuth } from "./AuthProvider";
+import DealImage from "./DealImage";
 
 // Merchant color/label map
 const MERCHANT_STYLES: Record<string, { cls: string; label: string; flag?: string }> = {
@@ -26,7 +27,6 @@ export default function DealCard({
   const { user, openLogin } = useAuth();
   const [isFavorite, setIsFavorite] = useState(false);
   const [alertSet,  setAlertSet]   = useState(false);
-  const [imgError, setImgError] = useState(false);
 
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -79,19 +79,13 @@ export default function DealCard({
     >
       {/* ── Image ── */}
       <div className={`relative ${imgH} w-full overflow-hidden bg-gray-100`}>
-        {!imgError && deal.image_url ? (
-          <img
-            src={deal.image_url}
-            alt={deal.title}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div className={`w-full h-full bg-gradient-to-br ${fallback} flex items-center justify-center`}>
-            <Tag size={44} className="text-white/40" />
-          </div>
-        )}
+        <DealImage
+          src={deal.image_url}
+          alt={deal.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          fallbackClassName={`w-full h-full bg-gradient-to-br ${fallback} flex items-center justify-center`}
+          fallbackIconSize={44}
+        />
 
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />

@@ -22,7 +22,9 @@ export async function GET(req: NextRequest) {
       .range(from, from + limit - 1);
 
     if (category) query = query.eq("category_id", category);
-    if (q)        query = query.ilike("title", `%${q}%`);
+    if (q) {
+      query = query.or(`title.ilike.%${q}%,merchant.ilike.%${q}%,category_id.ilike.%${q}%`);
+    }
 
     // Sort options
     const sortMap: Record<string, { column: string; ascending: boolean }> = {
@@ -47,7 +49,15 @@ export async function GET(req: NextRequest) {
       if (res.ok) {
         let deals = await res.json();
         if (category) deals = deals.filter((d: any) => d.category === category || d.category_id === category);
-        if (q)        deals = deals.filter((d: any) => d.title.toLowerCase().includes(q.toLowerCase()));
+        if (q) {
+          const lowerQ = q.toLowerCase();
+          deals = deals.filter((d: any) => 
+            (d.title && d.title.toLowerCase().includes(lowerQ)) ||
+            (d.merchant && d.merchant.toLowerCase().includes(lowerQ)) ||
+            (d.category_id && d.category_id.toLowerCase().includes(lowerQ)) ||
+            (d.category && d.category.toLowerCase().includes(lowerQ))
+          );
+        }
         return NextResponse.json({ deals, total: deals.length, page: 1, limit: deals.length, fallback: true });
       }
     } catch {}

@@ -1,35 +1,47 @@
 import DealListing from "@/components/DealListing";
-import { getCategoryLabel, getCategoryEmoji, CATEGORIES } from "@/config/categories";
 import { notFound } from "next/navigation";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
 
-export function generateStaticParams() {
-  return CATEGORIES.map((category) => ({
-    categoryId: category.id,
+export async function generateStaticParams() {
+  const supabase = createSupabaseAdmin();
+  const { data } = await supabase.from("categories").select("id").eq("is_active", true);
+  return (data || []).map((cat) => ({
+    categoryId: cat.id,
   }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ categoryId: string }> }) {
   const { categoryId } = await params;
-  const label = getCategoryLabel(categoryId);
-  if (!label || categoryId === categoryId.toLowerCase() && label === categoryId) {
+  const supabase = createSupabaseAdmin();
+  
+  const { data: cat } = await supabase
+    .from("categories")
+    .select("label")
+    .eq("id", categoryId)
+    .single();
+
+  if (!cat) {
     return { title: "Category Not Found | DealNexus" };
   }
+  
   return {
-    title: `${label} Deals | DealNexus`,
-    description: `Find the best active deals for ${label}.`,
+    title: `${cat.label} Deals | DealNexus`,
+    description: `Find the best active deals for ${cat.label}.`,
   };
 }
 
 export default async function CategoryPage({ params }: { params: Promise<{ categoryId: string }> }) {
   const { categoryId } = await params;
-  const label = getCategoryLabel(categoryId);
-  // fallback check, getCategoryLabel returns 'id' if not found.
-  if (!label || label === categoryId) return notFound();
-
-  const emoji = getCategoryEmoji(categoryId);
-
   const supabase = createSupabaseAdmin();
+  
+  const { data: cat } = await supabase
+    .from("categories")
+    .select("label, emoji")
+    .eq("id", categoryId)
+    .single();
+
+  if (!cat) return notFound();
+
   const { data } = await supabase
     .from("deals")
     .select("*")
@@ -41,5 +53,5 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
 
   const deals = data || [];
 
-  return <DealListing title={`${emoji} ${label} Deals`} categoryId={categoryId} initialDeals={deals} />;
+  return <DealListing title={`${cat.emoji} ${cat.label} Deals`} categoryId={categoryId} initialDeals={deals} />;
 }
