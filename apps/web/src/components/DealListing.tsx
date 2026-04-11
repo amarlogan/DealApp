@@ -26,11 +26,15 @@ type SortOption = "discount_percentage" | "price_asc" | "price_desc" | "newest";
 export default function DealListing({ 
   title, 
   categoryId, 
+  seasonId,
+  isFeatured,
   searchQuery,
   initialDeals = [] 
 }: { 
   title: string; 
   categoryId?: string; 
+  seasonId?: string;
+  isFeatured?: boolean;
   searchQuery?: string;
   initialDeals?: Deal[] 
 }) {
@@ -65,6 +69,8 @@ export default function DealListing({
         sort: currentSort,
       });
       if (categoryId) params.append("category", categoryId);
+      if (seasonId) params.append("season", seasonId);
+      if (isFeatured) params.append("featured", "true");
       if (searchQuery) params.append("q", searchQuery);
 
       const res = await fetch(`/api/deals?${params.toString()}`);
@@ -116,7 +122,7 @@ export default function DealListing({
     setPage(1);
     fetchDeals(1, sort, true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sort, categoryId, searchQuery]);
+  }, [sort, categoryId, seasonId, isFeatured, searchQuery]);
 
   const loadMore = () => {
     const next = page + 1;

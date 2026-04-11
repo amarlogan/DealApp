@@ -6,24 +6,34 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   const supabase = createSupabaseAdmin();
   
-  // 1. Fetch Deals
-  const { data: dealsData } = await supabase
+  // 1. Fetch Deals with their seasonal associations
+  // Increased limit to 200 to ensure we have enough diversity for all sections
+  const { data: dealsData, error: dealsError } = await supabase
     .from("deals")
-    .select("*")
+    .select("*, deal_seasons(season_id)")
     .eq("status", "active")
     .eq("in_stock", true)
-    .limit(48)
+    .limit(200)
     .order("discount_percentage", { ascending: false });
 
-  // 2. Fetch Landing Sections with their categories
-  const { data: sectionsData } = await supabase
+  if (dealsError) {
+    console.error("Error fetching deals:", dealsError);
+  }
+  
+  // 2. Fetch Landing Sections with their categories OR seasons
+  const { data: sectionsData, error: sectionsError } = await supabase
     .from("landing_sections")
     .select(`
-      id, title, sort_order, category_id, max_items,
-      categories ( id, label, emoji, phase )
+      id, title, sort_order, category_id, season_id, max_items,
+      categories ( id, label, emoji, phase ),
+      seasons ( id, name, css_variables )
     `)
     .eq("is_visible", true)
     .order("sort_order", { ascending: true });
+
+  if (sectionsError) {
+    console.error("Error fetching landing sections:", sectionsError);
+  }
 
   // 3. Fetch Top Categories for category tiles (phase 1)
   const { data: categoriesData } = await supabase

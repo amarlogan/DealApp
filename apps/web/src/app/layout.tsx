@@ -42,11 +42,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const navs = navItems || [];
 
+  // Fetch active season (current date between start and end)
+  const today = new Date().toISOString().split('T')[0];
+  const { data: seasonData } = await supabase
+    .from("seasons")
+    .select("*")
+    .lte("start_date", today)
+    .gte("end_date", today)
+    .limit(1)
+    .maybeSingle();
+
+  const activeSeason = seasonData || { name: "default", css_variables: { "--primary": "#53A318" } };
+
   return (
     <html lang="en">
       <body className={`${inter.variable} ${outfit.variable} font-sans antialiased min-h-screen flex flex-col bg-[#f0f7fb]`}>
         <Providers>
-          <ThemeProvider season={{ name: "default", css_variables: '{"--primary":"#53A318"}' }}>
+          <ThemeProvider season={activeSeason}>
 
             {/* ── Announcement Strip ── */}
             <div className="bg-[#53A318] text-white text-center text-xs font-semibold py-2 px-4 tracking-wide">

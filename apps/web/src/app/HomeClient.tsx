@@ -11,7 +11,7 @@ type Deal = {
   title: string;
   description?: string;
   merchant: string;
-  category_id: string;
+  category_id?: string;
   category?: string;
   current_price: number;
   original_price: number;
@@ -21,17 +21,27 @@ type Deal = {
   rating: number;
   reviews?: string;
   review_count?: number;
-  isPopular?: boolean;
   is_popular?: boolean;
   in_stock?: boolean;
   promo_code?: string | null;
   badge?: string | null;
   location?: string | null;
+  deal_seasons?: { season_id: string }[] | { season_id: string };
 };
 
 // Extracted from DB types
 type UICategory = { id: string; label: string; emoji: string; phase: number; description?: string };
-type LandingSection = { id: string; title: string | null; sort_order: number; category_id: string; max_items: number; categories?: UICategory };
+type UISeason = { id: string; name: string; css_variables: any };
+type LandingSection = { 
+  id: string; 
+  title: string | null; 
+  sort_order: number; 
+  category_id: string | null; 
+  season_id: string | null;
+  max_items: number; 
+  categories?: UICategory | UICategory[];
+  seasons?: UISeason | UISeason[];
+};
 
 function Carousel({ title, icon, deals, featured = false, seeAllHref = "#" }: {
   title: string; icon: React.ReactNode; deals: Deal[]; featured?: boolean; seeAllHref?: string;
@@ -105,9 +115,21 @@ export default function HomeClient({
   const { hh, mm, ss }   = useCountdown(4, 23, 17);
 
   const byCat = (id: string, max?: number) => {
-    const arr = deals.filter(d => (d.category_id ?? d.category) === id);
+    const arr = deals.filter(d => (d.category_id === id) || (d.category === id));
     return max ? arr.slice(0, max) : arr;
   };
+
+  const bySeason = (id: string, max?: number) => {
+    const arr = deals.filter(d => {
+      if (!d.deal_seasons) return false;
+      if (Array.isArray(d.deal_seasons)) {
+        return d.deal_seasons.some(ds => ds.season_id === id);
+      }
+      return (d.deal_seasons as any).season_id === id;
+    });
+    return max ? arr.slice(0, max) : arr;
+  };
+
   const featured   = deals.filter(d => d.is_popular || d.isPopular || (d.discount_percentage ?? 0) >= 30);
   const flashDeals = deals.filter(d => (d.discount_percentage ?? 0) >= 38);
 
@@ -195,20 +217,39 @@ export default function HomeClient({
 
       {/* ── Deal Carousels — Database Driven ── */}
       <div id="deals" className="space-y-0">
-        <Carousel title="Top Deals Today 🔥" icon={<TrendingUp size={22}/>} deals={featured} featured seeAllHref="/deals" />
+        <Carousel title="Top Deals Today 🔥" icon={<TrendingUp size={22}/>} deals={featured} featured seeAllHref="/deals?featured=true" />
         
         {landingSections.map(sec => {
-          const cat = sec.categories;
-          if (!cat) return null;
-          return (
-            <Carousel
-              key={sec.id}
-              title={sec.title || cat.label}
-              icon={<span className="text-xl">{cat.emoji}</span>}
-              deals={byCat(sec.category_id, sec.max_items)}
-              seeAllHref={`/category/${sec.category_id}`}
-            />
-          );
+          // Handle potential array or object from Supabase join
+          const cat = Array.isArray(sec.categories) ? sec.categories[0] : sec.categories;
+          const season = Array.isArray(sec.seasons) ? sec.seasons[0] : sec.seasons;
+
+          if (cat && sec.category_id) {
+            return (
+              <Carousel
+                key={sec.id}
+                title={sec.title || cat.label}
+                icon={<span className="text-xl">{cat.emoji}</span>}
+                deals={byCat(sec.category_id, sec.max_items)}
+                seeAllHref={`/category/${sec.category_id}`}
+              />
+            );
+          }
+
+          if (season && sec.season_id) {
+            return (
+              <Carousel
+                key={sec.id}
+                title={sec.title || season.name}
+                icon={<Sparkles size={22} className="text-amber-500" />}
+                deals={bySeason(sec.season_id, sec.max_items)}
+                featured
+                seeAllHref={`/deals?season=${sec.season_id}`}
+              />
+            );
+          }
+
+          return null;
         })}
       </div>
 

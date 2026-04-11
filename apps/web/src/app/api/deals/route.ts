@@ -4,6 +4,8 @@ import { createSupabaseAdmin } from "@/lib/supabase-server";
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const category = searchParams.get("category") ?? undefined;
+  const season   = searchParams.get("season") ?? undefined;
+  const featured = searchParams.get("featured") === "true";
   const q        = searchParams.get("q") ?? undefined;
   const sort     = searchParams.get("sort") ?? "discount_percentage";
   const minDisc  = parseInt(searchParams.get("min_discount") ?? "0");
@@ -13,18 +15,37 @@ export async function GET(req: NextRequest) {
 
   try {
     const supabase = createSupabaseAdmin();
+    
+    // Base selector
+    let selectString = "*";
+    if (season) {
+      // Use inner join on deal_seasons to filter results by season
+      selectString = "*, deal_seasons!inner(season_id)";
+    }
+
     let query = supabase
       .from("deals")
-      .select("*", { count: "exact" })
+      .select(selectString, { count: "exact" })
       .eq("status", "active")
       .eq("in_stock", true)
-      .gte("discount_percentage", minDisc)
-      .range(from, from + limit - 1);
+      .gte("discount_percentage", minDisc);
 
     if (category) query = query.eq("category_id", category);
+    
+    if (season) {
+      query = query.eq("deal_seasons.season_id", season);
+    }
+    
+    if (featured) {
+      query = query.or(`is_popular.eq.true,discount_percentage.gte.30`);
+    }
+
     if (q) {
       query = query.or(`title.ilike.%${q}%,merchant.ilike.%${q}%,category_id.ilike.%${q}%`);
     }
+
+    // Pagination
+    query = query.range(from, from + limit - 1);
 
     // Sort options
     const sortMap: Record<string, { column: string; ascending: boolean }> = {
@@ -49,6 +70,8 @@ export async function GET(req: NextRequest) {
       if (res.ok) {
         let deals = await res.json();
         if (category) deals = deals.filter((d: any) => d.category === category || d.category_id === category);
+        if (featured) deals = deals.filter((d: any) => d.is_popular || (d.discount_percentage >= 30));
+        // Note: season filtering isn't easily simulated in offline JSON without bridge data
         if (q) {
           const lowerQ = q.toLowerCase();
           deals = deals.filter((d: any) => 
