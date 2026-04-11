@@ -7,6 +7,7 @@ import UserMenu from "@/components/UserMenu";
 import { ShoppingCart, Bell, Search, MapPin, Percent, ChevronDown, ChevronRight } from "lucide-react";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
 import SearchBar from "@/components/SearchBar";
+import CategoryNav from "@/components/CategoryNav";
 
 const inter  = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -23,6 +24,8 @@ const FOOTER_LINKS = {
   "Your Account":["Sign In / Register", "Saved Deals", "Price Alerts", "Deal History", "Interests"],
   "Support":     ["Help Center", "Contact Us", "Report a Problem", "Accessibility", "Privacy Policy", "Terms"],
 };
+
+export const revalidate = 60; // Revalidate layout every 60 seconds to catch DB updates
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const supabase = createSupabaseAdmin();
@@ -81,38 +84,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </div>
 
               {/* ── Dynamic Category Nav ── */}
-              <nav aria-label="Product categories" className="max-w-7xl mx-auto px-4 sm:px-6 py-1.5 hidden lg:flex items-center gap-1 border-t border-gray-100 overflow-x-auto hide-scrollbar">
-                {navs.map((nav: any) => {
-                  const label = nav.label_override || (nav.categories?.label ?? "Unknown");
-                  const isHighlighted = nav.is_highlighted;
-                  const isUpcoming = nav.categories?.phase === 2;
-                  const href = nav.href || (nav.category_id ? `/category/${nav.category_id}` : "#");
-
-                  if (isUpcoming) {
-                    return (
-                      <span key={nav.id} title="Coming soon!" className="py-1.5 px-3 text-sm font-semibold whitespace-nowrap rounded-full text-gray-400 flex items-center gap-1.5 cursor-not-allowed select-none">
-                        {nav.categories?.emoji} {label}
-                        <span className="coming-soon-badge">Soon</span>
-                      </span>
-                    );
-                  }
-
-                  return (
-                    <a
-                      key={nav.id}
-                      href={href}
-                      className={
-                        isHighlighted
-                          ? "py-1.5 px-3 text-sm font-bold whitespace-nowrap rounded-full text-[#53A318] bg-[#e8f4e0] transition-all"
-                          : "py-1.5 px-3 text-sm font-semibold whitespace-nowrap rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all"
-                      }
-                    >
-                      {nav.categories?.emoji && !isHighlighted ? `${nav.categories.emoji} ` : ""}
-                      {label}
-                    </a>
-                  );
-                })}
-              </nav>
+              <CategoryNav navs={navs} />
             </header>
 
             {/* ── Page ── */}

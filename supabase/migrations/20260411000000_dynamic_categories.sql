@@ -31,7 +31,14 @@ INSERT INTO categories (id, label, emoji, description, phase, sort_order) VALUES
 ('beauty',       'Beauty & Personal Care','💄', 'Skincare, makeup & grooming',       2, 70),
 ('food',         'Food & Dining',        '🍽️', 'Restaurants & food subscriptions',  2, 80),
 ('travel',       'Travel & Hotels',      '✈️',  'Flights, hotels & experiences',     2, 90),
-('auto',         'Auto & Tools',         '🔧',  'Car accessories & hardware',        2, 100)
+('auto',         'Auto & Tools',         '🔧',  'Car accessories & hardware',        2, 100),
+('health',       'Health & Wellness',    '💊', 'Vitamins, fitness & care',          1, 110),
+('pets',         'Pet Supplies',         '🐶', 'Food, toys & accessories',          1, 120),
+('books',        'Books & Audible',      '📚', 'Bestsellers & audiobooks',          1, 130),
+('software',     'Software & Apps',      '💻', 'Subscriptions & digital goods',     1, 140),
+('gaming',       'Video Games',          '🎮', 'Consoles, PC & accessories',        1, 150),
+('grocery',      'Groceries & Daily',    '🛒', 'Pantry staples & fresh food',       1, 160),
+('office',       'Office Supplies',      '📎', 'Desks, chairs & stationery',        1, 170)
 ON CONFLICT (id) DO UPDATE SET 
     label = EXCLUDED.label, 
     emoji = EXCLUDED.emoji,
@@ -84,7 +91,14 @@ INSERT INTO navigation_items (category_id, label_override, href, is_highlighted,
 ('beauty', NULL, NULL, false, 70),
 ('food', NULL, NULL, false, 80),
 ('travel', NULL, NULL, false, 90),
-('auto', NULL, NULL, false, 100);
+('auto', NULL, NULL, false, 100),
+('health', NULL, NULL, false, 110),
+('pets', NULL, NULL, false, 120),
+('books', NULL, NULL, false, 130),
+('software', NULL, NULL, false, 140),
+('gaming', NULL, NULL, false, 150),
+('grocery', NULL, NULL, false, 160),
+('office', NULL, NULL, false, 170);
 
 -- ── 3. Landing Page Sections Configure ───────────────────────────────────────
 CREATE TABLE IF NOT EXISTS landing_sections (
