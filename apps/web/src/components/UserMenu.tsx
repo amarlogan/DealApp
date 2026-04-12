@@ -6,7 +6,7 @@ import { useAuth } from "./AuthProvider";
 import Link from "next/link";
 
 export default function UserMenu() {
-  const { user, signOut, openLogin } = useAuth();
+  const { user, role, signOut, openLogin } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -39,7 +39,6 @@ export default function UserMenu() {
     .toUpperCase();
 
   const displayName = user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "User";
-  const { role } = useAuth();
 
   return (
     <div ref={ref} className="relative hidden sm:block">

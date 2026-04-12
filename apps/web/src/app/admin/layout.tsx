@@ -1,12 +1,14 @@
-import { LayoutDashboard, Tag, ShoppingBag, Palette, Home, LogOut, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Tag, ShoppingBag, Palette, Home, LogOut, ChevronRight, Users, Compass } from "lucide-react";
 import Link from "next/link";
 
 const ADMIN_NAV = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Deals Manager", href: "/admin/deals", icon: ShoppingBag },
   { label: "Categories", href: "/admin/categories", icon: Tag },
+  { label: "Top Navigation", href: "/admin/navigation", icon: Compass },
   { label: "Seasonal & Themes", href: "/admin/seasons", icon: Palette },
   { label: "Homepage Layout", href: "/admin/homepage", icon: Home },
+  { label: "User Management", href: "/admin/users", icon: Users },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
