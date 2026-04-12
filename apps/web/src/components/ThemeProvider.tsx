@@ -11,9 +11,16 @@ export default function ThemeProvider({ children, season }: { children: React.Re
       const root = document.documentElement;
       for (const [key, value] of Object.entries(vars)) {
          root.style.setProperty(key, value as string);
-         // Dynamically override variables on the client
+         
+         // Special handling for the primary color to update semantic shades
          if (key === '--primary') {
-            root.style.setProperty('--color-primary', value as string);
+            const hex = value as string;
+            root.style.setProperty('--color-primary', hex);
+            
+            // Set derived shades if not explicitly provided
+            root.style.setProperty('--primary-dark', `${hex}dd`); // slightly darker
+            root.style.setProperty('--primary-light', `${hex}15`); // very light tint
+            root.style.setProperty('--primary-glow', `${hex}25`); // glow effect
          }
       }
     }

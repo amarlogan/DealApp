@@ -4,15 +4,21 @@
 
 /* ─── Design Tokens ────────────────────────────────────────────────────────── */
 :root {
+  /* Dynamic Seasonal Variables (Overridden by ThemeProvider) */
   --primary:        #53A318;
   --primary-dark:   #3d7c10;
   --primary-light:  #e8f4e0;
+  --primary-glow:   rgba(83, 163, 24, 0.15);
+  
+  /* Static UI Tokens */
   --accent:         #ff6128;
   --background:     #f0f7fb;
   --surface:        #ffffff;
   --text:           #111827;
   --text-muted:     #6b7280;
   --border:         #e5e7eb;
+  
+  /* Shape & Elevation */
   --radius-card:    16px;
   --shadow-card:    0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.06);
   --shadow-hover:   0 10px 25px -5px rgb(0 0 0 / 0.12), 0 4px 6px -4px rgb(0 0 0 / 0.08);
@@ -73,7 +79,7 @@ h1, h2, h3, h4 { font-family: 'Outfit', 'Inter', sans-serif; }
 .merchant-badge.walmart { background: #e6f0ff; color: #0071ce; border: 1px solid #0071ce50; }
 .merchant-badge.nike    { background: #f3f3f3; color: #111;    border: 1px solid #ccc; }
 .merchant-badge.adidas  { background: #111;    color: #fff;    border: 1px solid #333; }
-.merchant-badge.generic { background: var(--primary-light); color: var(--primary); border: 1px solid #53A31840; }
+.merchant-badge.generic { background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-glow); }
 
 /* ─── "Coming Soon" Badge ──────────────────────────────────────────────────── */
 .coming-soon-badge {
@@ -94,6 +100,13 @@ h1, h2, h3, h4 { font-family: 'Outfit', 'Inter', sans-serif; }
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-in { animation: fadeSlideUp 0.5s ease both; }
+
+@keyframes seasonalGlow {
+  0%   { box-shadow: 0 0 15px var(--primary-glow); }
+  50%  { box-shadow: 0 0 30px var(--primary-glow); }
+  100% { box-shadow: 0 0 15px var(--primary-glow); }
+}
+.animate-seasonal-glow { animation: seasonalGlow 4s ease-in-out infinite; }
 
 /* ─── Carousel Scroll Snap ─────────────────────────────────────────────────── */
 .carousel-track {

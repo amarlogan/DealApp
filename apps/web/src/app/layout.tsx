@@ -53,7 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     .limit(1)
     .maybeSingle();
 
-  const activeSeason = seasonData || { name: "default", css_variables: { "--primary": "#53A318" } };
+  const activeSeason = seasonData || { name: "default", css_variables: { "--primary": "var(--primary)" } };
 
   return (
     <html lang="en">
@@ -62,7 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ThemeProvider season={activeSeason}>
 
             {/* ── Announcement Strip ── */}
-            <div className="bg-[#53A318] text-white text-center text-xs font-semibold py-2 px-4 tracking-wide">
+            <div className="bg-[var(--primary)] text-white text-center text-xs font-semibold py-2 px-4 tracking-wide">
               🎉 New deals added daily — Electronics, Fashion, Home &amp; more!{" "}
               <a href="/deals" className="underline hover:text-white/80">Browse Now →</a>
             </div>
@@ -73,11 +73,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
                 {/* Logo */}
                 <a href="/" aria-label="DealNexus Home" className="flex items-center gap-2 flex-shrink-0 group">
-                  <div className="w-9 h-9 bg-[#53A318] rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
+                  <div className="w-9 h-9 bg-[var(--primary)] rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
                     <Percent size={20} className="text-white" strokeWidth={3} />
                   </div>
                   <span className="text-2xl font-black tracking-tight text-gray-900">
-                    Deal<span className="text-[#53A318]">Nexus</span>
+                    Deal<span className="text-[var(--primary)]">Nexus</span>
                   </span>
                 </a>
 
@@ -108,17 +108,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 {/* Brand */}
                 <div className="col-span-2 md:col-span-1">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 bg-[#53A318] rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-[var(--primary)] rounded-lg flex items-center justify-center">
                       <Percent size={16} className="text-white" strokeWidth={3} />
                     </div>
-                    <span className="text-xl font-black text-white">Deal<span className="text-[#53A318]">Nexus</span></span>
+                    <span className="text-xl font-black text-white">Deal<span className="text-[var(--primary)]">Nexus</span></span>
                   </div>
                   <p className="text-sm text-gray-400 leading-relaxed mb-4">
                     The best deals on electronics, fashion, shoes, home & more — curated from 200+ top brands.
                   </p>
                   <div className="flex gap-2">
                     {["𝕏","f","in"].map((s,i) => (
-                      <a key={i} href="#" className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-xs font-bold hover:bg-[#53A318] transition-colors">{s}</a>
+                      <a key={i} href="#" className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-xs font-bold hover:bg-[var(--primary)] transition-colors">{s}</a>
                     ))}
                   </div>
                 </div>

@@ -119,7 +119,7 @@ export default function DealCard({
 
         {/* Discount pill — top right area */}
         {deal.discount_percentage > 0 && (
-          <div className="absolute top-2.5 right-9 z-10 bg-[#53A318] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">
+          <div className="absolute top-2.5 right-9 z-10 bg-[var(--primary)] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">
             -{deal.discount_percentage}%
           </div>
         )}
@@ -153,7 +153,7 @@ export default function DealCard({
 
         {/* Title */}
         <h3
-          className={`font-bold leading-snug line-clamp-2 text-gray-900 group-hover:text-[#53A318] transition-colors ${
+          className={`font-bold leading-snug line-clamp-2 text-gray-900 group-hover:text-[var(--primary)] transition-colors ${
             featured ? "text-[15px]" : "text-[13px]"
           }`}
         >
@@ -183,7 +183,7 @@ export default function DealCard({
         {/* Pricing */}
         <div className="border-t border-gray-50 pt-2.5">
           <div className="flex items-baseline gap-2">
-            <span className="text-xl font-black text-[#53A318] leading-none">
+            <span className="text-xl font-black text-[var(--primary)] leading-none">
               ${deal.current_price?.toFixed(2)}
             </span>
             <span className="text-sm text-gray-400 line-through leading-none">

@@ -54,8 +54,8 @@ type HeroSlide = {
   bg_gradient?: string;
 };
 
-function Carousel({ title, icon, deals, featured = false, seeAllHref = "#" }: {
-  title: string; icon: React.ReactNode; deals: Deal[]; featured?: boolean; seeAllHref?: string;
+function Carousel({ title, icon, deals, featured = false, seasonTheme = false, seeAllHref = "#" }: {
+  title: string; icon: React.ReactNode; deals: Deal[]; featured?: boolean; seasonTheme?: boolean; seeAllHref?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const scroll = (dir: "left" | "right") =>
@@ -64,13 +64,16 @@ function Carousel({ title, icon, deals, featured = false, seeAllHref = "#" }: {
   if (deals.length === 0) return null;
 
   return (
-    <div className="section-box">
+    <div className={`section-box overflow-hidden relative ${seasonTheme ? 'border-[var(--primary)] shadow-[0_0_20px_var(--primary-glow)] ring-2 ring-[var(--primary-glow)] bg-gradient-to-br from-white via-white to-[var(--primary-light)] animate-seasonal-glow' : ''}`}>
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <span className="text-[#53A318]">{icon}</span>
-          <h2 className="text-xl font-black text-gray-900 tracking-tight">{title}</h2>
+          <span className={`${seasonTheme ? 'text-[var(--primary)]' : 'text-[var(--primary)]'}`}>{icon}</span>
+          <h2 className={`text-xl font-black tracking-tight ${seasonTheme ? 'text-[var(--primary-dark)]' : 'text-gray-900'}`}>{title}</h2>
+          {seasonTheme && (
+             <span className="bg-[var(--primary)] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ml-1">Featured Event</span>
+          )}
         </div>
-        <a href={seeAllHref} className="text-sm font-bold text-[#53A318] hover:text-[#3d7c10] flex items-center gap-1 group">
+        <a href={seeAllHref} className={`text-sm font-bold flex items-center gap-1 group ${seasonTheme ? 'text-[var(--primary-dark)]' : 'text-[var(--primary)] hover:text-[var(--primary-dark)]'}`}>
           See all <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
         </a>
       </div>
@@ -80,7 +83,7 @@ function Carousel({ title, icon, deals, featured = false, seeAllHref = "#" }: {
           <ChevronLeft size={18} className="text-gray-600" />
         </button>
         <div ref={ref} className="carousel-track">
-          {deals.map(deal => <DealCard key={deal.id} deal={deal} featured={featured} />)}
+          {deals.map(deal => <DealCard key={deal.id} deal={deal} featured={featured || seasonTheme} />)}
         </div>
         <button onClick={() => scroll("right")} aria-label="Scroll right"
           className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 hidden md:flex w-9 h-9 rounded-full bg-white shadow-md border border-gray-200 items-center justify-center hover:bg-gray-50 transition-colors">
@@ -105,10 +108,14 @@ function useCountdown(h: number, m: number, s: number) {
 }
 
 const TILE_GRADIENTS = [
-  { from: "from-indigo-500",  to: "to-blue-600" },
-  { from: "from-emerald-500", to: "to-teal-600" },
-  { from: "from-rose-400",    to: "to-pink-500" },
-  { from: "from-slate-600",   to: "to-gray-700" },
+  { from: "from-[#4F46E5]",  to: "to-[#7C3AED]" }, // Indigo-Vibrant
+  { from: "from-[#10B981]",  to: "to-[#059669]" }, // Emerald-Deep
+  { from: "from-[#F59E0B]",  to: "to-[#D97706]" }, // Amber-Sunset
+  { from: "from-[#EF4444]",  to: "to-[#DC2626]" }, // Rose-Alert
+  { from: "from-[#8B5CF6]",  to: "to-[#7C3AED]" }, // Violet-Dusk
+  { from: "from-[#EC4899]",  to: "to-[#DB2777]" }, // Pink-Flash
+  { from: "from-[#0EA5E9]",  to: "to-[#0284C7]" }, // Sky-High
+  { from: "from-[#334155]",  to: "to-[#1E293B]" }, // Slate-Professional
 ];
 
 function CategoryCarousel({ categories }: { categories: UICategory[] }) {
@@ -243,7 +250,7 @@ export default function HomeClient({
                     {slide.subtitle}
                   </p>
                   <div className="flex flex-wrap gap-4 animate-in slide-in-from-bottom-12 duration-1000">
-                    <Link href={slide.button_link || "/deals"} className="bg-[#53A318] hover:bg-[#3d7c10] text-white px-10 py-4 rounded-full font-black shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3 text-sm lg:text-base">
+                    <Link href={slide.button_link || "/deals"} className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-10 py-4 rounded-full font-black shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3 text-sm lg:text-base">
                       <Percent size={18} /> {slide.button_text || "Browse Deals"}
                     </Link>
                   </div>
@@ -349,7 +356,7 @@ export default function HomeClient({
                 title={sec.title || season.name}
                 icon={<Sparkles size={22} className="text-amber-500" />}
                 deals={bySeason(sec.season_id, sec.max_items)}
-                featured
+                seasonTheme
                 seeAllHref={`/deals?season=${sec.season_id}`}
               />
             );
@@ -363,7 +370,7 @@ export default function HomeClient({
       <div className="py-6 flex justify-center">
         <Link 
           href="/deals" 
-          className="bg-white border-2 border-gray-200 text-gray-700 hover:border-[#53A318] hover:text-[#53A318] font-bold py-3 px-8 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-2"
+          className="bg-white border-2 border-gray-200 text-gray-700 hover:border-[var(--primary)] hover:text-[var(--primary)] font-bold py-3 px-8 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-2"
         >
           View All Categories & Deals <ChevronRight size={18} />
         </Link>
@@ -385,7 +392,7 @@ export default function HomeClient({
       )}
 
       {/* ── Newsletter ── */}
-      <div className="bg-gradient-to-br from-[#53A318] to-[#2d7a00] rounded-3xl p-8 lg:p-12 text-white text-center shadow-xl">
+      <div className="bg-gradient-to-br from-[var(--primary)] to-[#2d7a00] rounded-3xl p-8 lg:p-12 text-white text-center shadow-xl">
         <div className="text-4xl mb-3">📬</div>
         <h2 className="text-3xl font-black mb-2">Never Miss a Deal</h2>
         <p className="text-white/80 mb-6 font-medium">Get top discounts delivered daily. 200,000+ savvy shoppers already subscribed.</p>

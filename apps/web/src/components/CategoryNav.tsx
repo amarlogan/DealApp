@@ -79,7 +79,7 @@ export default function CategoryNav({ navs }: { navs: any[] }) {
               href={href}
               className={
                 isHighlighted
-                  ? "shrink-0 py-1.5 px-3 text-sm font-bold whitespace-nowrap rounded-full text-[#53A318] bg-[#e8f4e0] transition-all"
+                  ? "shrink-0 py-1.5 px-3 text-sm font-bold whitespace-nowrap rounded-full text-[var(--primary)] bg-[var(--primary-light)] transition-all"
                   : "shrink-0 py-1.5 px-3 text-sm font-semibold whitespace-nowrap rounded-full text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all"
               }
             >
