@@ -67,7 +67,13 @@ The repository is a monorepo setup containing the backend, frontend, and our fut
 2. Make sure `npm run dev` is active in `apps/web`.
 3. Open `http://localhost:3000` in your web browser. 
 4. **Test the Data:** You should instantly see carousels packed with Electronics, Home & Kitchen, Toys, and Sports deals. If the page is blank, confirm that the database seeded properly using Supabase Studio at `http://127.0.0.1:54323`.
-5. **Test Auth:** Click "Sign In" at the top right. Enter a dummy email (e.g. `test@deal.com` and a password). The Local Supabase Auth server handles mock confirmations automatically, meaning you can instantly test the bookmark component without needing a real SMTP server.
+5. **Test Auth:** Click "Sign In" at the top right. Enter a dummy email (e.g. `test@deal.com` and a password). The Local Supabase Auth server handles mock confirmations automatically.
+
+### 🔐 Admin Access (Local Testing)
+To test admin-only features (like the Homepage Layout Manager), use:
+- **Email:** `admin@test.com`
+- **Password:** `admin123`
+- **Dashboard:** `http://localhost:3000/admin/homepage`
 ---
 
 ## 📅 Content Management & Seasonal Logic

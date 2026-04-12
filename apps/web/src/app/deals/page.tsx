@@ -48,7 +48,7 @@ export default async function DealsPage(props: { searchParams: Promise<any> }) {
     query = query.or("is_popular.eq.true,discount_percentage.gte.30");
   }
 
-  const { data: dealsData } = await query;
+  const { data: dealsData } = await (query as any);
   const deals = dealsData || [];
 
   return (

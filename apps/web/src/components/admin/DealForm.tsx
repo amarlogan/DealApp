@@ -11,8 +11,23 @@ interface DealFormProps {
   isLoading: boolean;
 }
 
+interface DealFormData {
+  title: string;
+  merchant: string;
+  current_price: number;
+  original_price: number;
+  discount_percentage: number;
+  image_url: string;
+  external_url: string;
+  category_id: string;
+  is_popular: boolean;
+  status: string;
+  badge: string;
+  season_ids: string[];
+}
+
 export default function DealForm({ initialData, categories, seasons, onSave, isLoading }: DealFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<DealFormData>({
     title: "",
     merchant: "",
     current_price: 0,

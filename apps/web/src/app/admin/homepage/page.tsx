@@ -5,7 +5,7 @@ export default async function AdminHomepagePage() {
   const supabase = createSupabaseAdmin();
 
   // Fetch sections, categories, and seasons in parallel for source selection
-  const [sectionsRes, categoriesRes, seasonsRes] = await Promise.all([
+  const [sectionsRes, categoriesRes, seasonsRes, heroRes] = await Promise.all([
     supabase
       .from("landing_sections")
       .select(`
@@ -21,13 +21,17 @@ export default async function AdminHomepagePage() {
     supabase
       .from("seasons")
       .select("id, name, start_date, end_date, css_variables")
-      .order("start_date", { ascending: false })
+      .order("start_date", { ascending: false }),
+    supabase
+      .from("hero_slides")
+      .select("*")
+      .order("sort_order", { ascending: true })
   ]);
 
-  if (sectionsRes.error) {
+  if (sectionsRes.error || heroRes.error) {
     return (
       <div className="p-8 text-red-500 font-bold uppercase tracking-widest border-2 border-red-100 bg-red-50 rounded-3xl">
-        Configuration Load Error: {sectionsRes.error.message}
+        Configuration Load Error: {sectionsRes.error?.message || heroRes.error?.message}
       </div>
     );
   }
@@ -35,6 +39,7 @@ export default async function AdminHomepagePage() {
   return (
     <HomepageLayoutManagerClient 
       initialSections={sectionsRes.data || []} 
+      initialHeroSlides={heroRes.data || []}
       categories={categoriesRes.data || []}
       seasons={seasonsRes.data || []}
     />

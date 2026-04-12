@@ -1,5 +1,1 @@
-Select * from deals
-
-Select * from seasons
-
-Select * from favorites
+DROP POLICY IF EXISTS rls_profiles_admin_all ON profiles; DROP POLICY IF EXISTS rls_profiles_admin_update ON profiles;

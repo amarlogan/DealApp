@@ -35,14 +35,13 @@ export default async function Home() {
     console.error("Error fetching landing sections:", sectionsError);
   }
 
-  // 3. Fetch Top Categories for category tiles (phase 1)
+  // 3. Fetch All Active Categories for the rotating marquee
   const { data: categoriesData } = await supabase
     .from("categories")
     .select("*")
     .eq("is_active", true)
-    .eq("phase", 1)
     .order("sort_order", { ascending: true })
-    .limit(4);
+    .limit(50);
 
   // 4. Fetch Coming Soon Categories
   const { data: upcomingData } = await supabase
@@ -51,12 +50,20 @@ export default async function Home() {
     .eq("phase", 2)
     .order("sort_order", { ascending: true });
 
+  // 5. Fetch Hero Slides
+  const { data: heroSlidesData } = await supabase
+    .from("hero_slides")
+    .select("*")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true });
+
   return (
     <HomeClient 
       initialDeals={dealsData || []} 
       landingSections={(sectionsData as any) || []}
       topCategories={categoriesData || []}
       upcomingCategories={upcomingData || []}
+      heroSlides={heroSlidesData || []}
     />
   );
 }

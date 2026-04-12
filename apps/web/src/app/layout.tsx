@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeProvider from "@/components/ThemeProvider";
 import Providers from "@/components/Providers";
 import UserMenu from "@/components/UserMenu";
+import NotificationBell from "@/components/NotificationBell";
 import { ShoppingCart, Bell, Search, MapPin, Percent, ChevronDown, ChevronRight } from "lucide-react";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
 import SearchBar from "@/components/SearchBar";
@@ -87,10 +88,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
                 {/* Right icons */}
                 <div className="flex items-center gap-1 sm:gap-2 ml-auto flex-shrink-0">
-                  <button id="notifications-btn" aria-label="Notifications" className="relative p-2.5 rounded-full hover:bg-gray-100 transition-colors text-gray-600 hover:text-[#53A318]">
-                    <Bell size={20} />
-                    <span className="absolute top-1.5 right-1.5 bg-red-500 text-white text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center font-black">3</span>
-                  </button>
+                  <NotificationBell />
                   <UserMenu />
                 </div>
               </div>
