@@ -28,6 +28,8 @@ const FOOTER_LINKS = {
 
 export const revalidate = 60; // Revalidate layout every 60 seconds to catch DB updates
 
+import ResponsiveShell from "@/components/ResponsiveShell";
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const supabase = createSupabaseAdmin();
   
@@ -43,7 +45,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const navs = navItems || [];
 
-  // Fetch active season (current date between start and end)
+  // Fetch active season
   const today = new Date().toISOString().split('T')[0];
   const { data: seasonData } = await supabase
     .from("seasons")
@@ -57,53 +59,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${outfit.variable} font-sans antialiased min-h-screen flex flex-col bg-[#f0f7fb]`}>
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" />
+      </head>
+      <body className={`${inter.variable} ${outfit.variable} font-sans antialiased min-h-screen flex flex-col`}>
         <Providers>
           <ThemeProvider season={activeSeason}>
-
-            {/* ── Announcement Strip ── */}
-            <div className="bg-[var(--primary)] text-white text-center text-xs font-semibold py-2 px-4 tracking-wide">
-              🎉 New deals added daily — Electronics, Fashion, Home &amp; more!{" "}
-              <a href="/deals" className="underline hover:text-white/80">Browse Now →</a>
-            </div>
-
-            {/* ── Header ── */}
-            <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-4">
-
-                {/* Logo */}
-                <a href="/" aria-label="DealNexus Home" className="flex items-center gap-2 flex-shrink-0 group">
-                  <div className="w-9 h-9 bg-[var(--primary)] rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-                    <Percent size={20} className="text-white" strokeWidth={3} />
-                  </div>
-                  <span className="text-2xl font-black tracking-tight text-gray-900">
-                    Deal<span className="text-[var(--primary)]">Nexus</span>
-                  </span>
-                </a>
-
-                {/* Search */}
-                <div className="flex-1 max-w-2xl hidden md:flex">
-                  <SearchBar />
-                </div>
-
-                {/* Right icons */}
-                <div className="flex items-center gap-1 sm:gap-2 ml-auto flex-shrink-0">
-                  <NotificationBell />
-                  <UserMenu />
-                </div>
-              </div>
-
-              {/* ── Dynamic Category Nav ── */}
-              <CategoryNav navs={navs} />
-            </header>
-
-            {/* ── Page ── */}
-            <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-6">
+            
+            <ResponsiveShell navs={navs} activeSeason={activeSeason}>
               {children}
-            </main>
+            </ResponsiveShell>
 
-            {/* ── Footer ── */}
-            <footer className="bg-gray-900 text-gray-300 mt-auto">
+            {/* ── Footer (Desktop Only) ── */}
+            <footer className="bg-gray-900 text-gray-300 hidden md:block">
               <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
                 {/* Brand */}
                 <div className="col-span-2 md:col-span-1">
@@ -116,11 +86,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                   <p className="text-sm text-gray-400 leading-relaxed mb-4">
                     The best deals on electronics, fashion, shoes, home & more — curated from 200+ top brands.
                   </p>
-                  <div className="flex gap-2">
-                    {["𝕏","f","in"].map((s,i) => (
-                      <a key={i} href="#" className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-xs font-bold hover:bg-[var(--primary)] transition-colors">{s}</a>
-                    ))}
-                  </div>
                 </div>
 
                 {Object.entries(FOOTER_LINKS).map(([heading, links]) => (
@@ -136,17 +101,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </div>
 
               <div className="border-t border-gray-800">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-500">
+                <div className="max-w-7xl mx-auto px-6 py-4 text-center text-xs text-gray-500">
                   <span>© 2026 DealNexus Inc. All rights reserved.</span>
-                  <div className="flex gap-4">
-                    <a href="#" className="hover:text-gray-300">Privacy</a>
-                    <a href="#" className="hover:text-gray-300">Terms</a>
-                    <a href="#" className="hover:text-gray-300">Affiliate Disclosure</a>
-                  </div>
                 </div>
-                <p className="max-w-7xl mx-auto px-6 pb-4 text-center text-xs text-gray-600">
-                  <strong>Affiliate Disclosure:</strong> DealNexus earns commissions from qualifying purchases made through our links. This does not affect the price you pay.
-                </p>
               </div>
             </footer>
 

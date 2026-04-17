@@ -22,6 +22,11 @@
   --radius-card:    16px;
   --shadow-card:    0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.06);
   --shadow-hover:   0 10px 25px -5px rgb(0 0 0 / 0.12), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+
+  /* Mobile App Context Tokens */
+  --bottom-nav-height: 4.5rem;
+  --mobile-header-height: 3.5rem;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* ─── Base ─────────────────────────────────────────────────────────────────── */
@@ -35,7 +40,23 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: contain; /* Prevents pull-to-refresh on mobile shells */
 }
+
+/* Splash Screen & Loading Animations */
+@keyframes loading-bar {
+  0% { transform: scaleX(0); }
+  50% { transform: scaleX(0.7); }
+  100% { transform: scaleX(1); }
+}
+.animate-loading-bar {
+  animation: loading-bar 2s ease-in-out forwards;
+}
+@keyframes zoom-in-50 {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+.zoom-in-50 { animation: zoom-in-50 0.7s ease-out; }
 
 /* ─── Typography ───────────────────────────────────────────────────────────── */
 h1, h2, h3, h4 { font-family: 'Outfit', 'Inter', sans-serif; }

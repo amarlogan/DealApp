@@ -53,3 +53,17 @@ DealDash is a **premium, high-fidelity** platform. Every UI element must feel in
 - **Task-Driven**: Maintain and update `task.md` for any feature rollout.
 - **Verification**: Always verify database sync after implementing UI toggles.
 - **Implementation Plans**: For complex features, outline data model impact before writing UI code.
+
+## 6. Adaptive Multi-Device Workflow (Mobile-First)
+
+DealDash follows an **Adaptive Shell** architecture. The application must provide a distinct, app-like experience for mobile while maintaining a high-density professional experience for desktop.
+
+### Mobile Immersive Standards
+- **Core Navigation**: Exclusively use a fixed **Bottom Navigation Bar** for primary actions (Home, Search, Favorites, Notifications, Profile).
+- **In-App Feel**: On mobile, the app must ignore standard browser "web" patterns and feel like an installed application. No horizontal scroll on the body, full-height modals, and touch-optimized padding.
+- **Search**: Mobile search must be triggered via a dedicated icon in the header or bottom nav, opening a full-screen search state/modal.
+
+### Device Detection & Strategy
+- **Responsive Shells**: Use the `MobileShell` vs `DesktopShell` pattern. Avoid `hidden` classes for large layout differences; instead, conditionally render the appropriate component tree (e.g., using `isMobile` hooks or high-performance media queries).
+- **Consistency**: Data models and backend APIs must be shared. Logic changes in the `ManagerClient` must reflect across both shells.
+- **No Regressions**: Structural changes to support mobile **MUST NOT** affect the current desktop layout or styling. Always use strict breakpoint scoping.
