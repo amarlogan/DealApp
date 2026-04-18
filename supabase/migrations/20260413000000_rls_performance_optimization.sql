@@ -23,7 +23,8 @@ CREATE POLICY rls_categories_select ON public.categories
     FOR SELECT USING (true);
 
 CREATE POLICY rls_categories_admin_modify ON public.categories
-    FOR INSERT, UPDATE, DELETE TO authenticated
+    FOR ALL TO authenticated
+    USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
 -- 3. Consolidate Deals Policies
@@ -35,7 +36,8 @@ CREATE POLICY rls_deals_select ON public.deals
     FOR SELECT USING (status = 'active' OR public.is_admin());
 
 CREATE POLICY rls_deals_admin_modify ON public.deals
-    FOR INSERT, UPDATE, DELETE TO authenticated
+    FOR ALL TO authenticated
+    USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
 -- 4. Consolidate Notifications Policies
@@ -50,7 +52,8 @@ CREATE POLICY rls_notifications_update ON public.notifications
     FOR UPDATE USING ((SELECT auth.uid()) = user_id OR public.is_admin());
 
 CREATE POLICY rls_notifications_admin_all ON public.notifications
-    FOR INSERT, DELETE TO authenticated
+    FOR ALL TO authenticated
+    USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
 -- 5. Consolidate Profiles Policies
@@ -74,7 +77,8 @@ CREATE POLICY rls_hero_select ON public.hero_slides
     FOR SELECT USING (is_active = true OR public.is_admin());
 
 CREATE POLICY rls_hero_admin_modify ON public.hero_slides
-    FOR INSERT, UPDATE, DELETE TO authenticated
+    FOR ALL TO authenticated
+    USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
 -- 7. Consolidate Landing Sections Policies
@@ -85,7 +89,8 @@ CREATE POLICY rls_landing_sections_select ON public.landing_sections
     FOR SELECT USING (is_visible = true OR public.is_admin());
 
 CREATE POLICY rls_landing_sections_admin_modify ON public.landing_sections
-    FOR INSERT, UPDATE, DELETE TO authenticated
+    FOR ALL TO authenticated
+    USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
 -- 8. Consolidate Seasons Policies
@@ -96,7 +101,8 @@ CREATE POLICY rls_seasons_select ON public.seasons
     FOR SELECT USING (true);
 
 CREATE POLICY rls_seasons_admin_modify ON public.seasons
-    FOR INSERT, UPDATE, DELETE TO authenticated
+    FOR ALL TO authenticated
+    USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
 -- 9. Performance Fix for Favorites & Price Alerts

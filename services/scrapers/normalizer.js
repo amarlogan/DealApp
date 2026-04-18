@@ -35,6 +35,25 @@ async function normalizeAndUpsert() {
     console.log('Starting data normalization...');
     const normalizedDeals = [];
 
+    const categoryMapper = (tags) => {
+        const validCategories = ['electronics', 'home-kitchen', 'fashion', 'shoes', 'sports', 'toys', 'health', 'pets'];
+        const tagMap = {
+            'tech': 'electronics',
+            'audio': 'electronics',
+            'wearables': 'electronics',
+            'apple': 'electronics',
+            'appliances': 'home-kitchen',
+            'clothing': 'fashion'
+        };
+        
+        for (const tag of tags) {
+            const normalizedTag = tag.toLowerCase();
+            if (validCategories.includes(normalizedTag)) return normalizedTag;
+            if (tagMap[normalizedTag]) return tagMap[normalizedTag];
+        }
+        return 'other';
+    };
+
     // Transform Amazon data
     rawFeeds.amazon.forEach(item => {
         normalizedDeals.push({
@@ -44,7 +63,9 @@ async function normalizeAndUpsert() {
             external_url: item.url,
             current_price: item.salePrice,
             original_price: item.msrp,
-            category: item.tags,
+            category_id: categoryMapper(item.tags),
+            image_url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
+            external_id: `amz-${item.asin}`,
             status: 'active'
         });
     });
@@ -58,18 +79,18 @@ async function normalizeAndUpsert() {
             external_url: item.link,
             current_price: item.currentBidOrBuyNow,
             original_price: item.originalPrice,
-            category: item.categories,
+            category_id: categoryMapper(item.categories),
+            image_url: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=800&q=80',
+            external_id: `ebay-${item.itemId}`,
             status: 'active'
         });
     });
 
-    // UPSERT into Supabase (matching on title as a mock conflict resolution, or just inserting new ones)
+    // UPSERT into Supabase (matching on external_id)
     for (const deal of normalizedDeals) {
-        // Because of our mock schema, ID is auto-gen UUID, and we can't strictly UPSERT without a unique identifier apart from ID.
-        // So we will just do a standard INSERT for this mock demonstration. In production, we'd add an `external_id` unique column constraint.
         const { data, error } = await supabase
             .from('deals')
-            .insert(deal)
+            .upsert(deal, { onConflict: 'external_id' })
             .select();
         
         if (error) {

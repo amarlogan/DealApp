@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
@@ -5,7 +6,7 @@ import ThemeProvider from "@/components/ThemeProvider";
 import Providers from "@/components/Providers";
 import UserMenu from "@/components/UserMenu";
 import NotificationBell from "@/components/NotificationBell";
-import { ShoppingCart, Bell, Search, MapPin, Percent, ChevronDown, ChevronRight } from "lucide-react";
+import { ShoppingCart, Bell, Search, MapPin, Percent, ChevronDown, ChevronRight, Shield } from "lucide-react";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
 import SearchBar from "@/components/SearchBar";
 import CategoryNav from "@/components/CategoryNav";
@@ -77,15 +78,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
                 {/* Brand */}
                 <div className="col-span-2 md:col-span-1">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 bg-[var(--primary)] rounded-lg flex items-center justify-center">
-                      <Percent size={16} className="text-white" strokeWidth={3} />
+                  <div className="flex items-center gap-2.5 mb-6 group cursor-pointer">
+                    <div className="w-9 h-9 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                      <Percent size={20} className="text-white" strokeWidth={3} />
                     </div>
-                    <span className="text-xl font-black text-white">Deal<span className="text-[var(--primary)]">Nexus</span></span>
+                    <span className="text-2xl font-black text-white tracking-tighter">Deal<span className="text-[var(--primary)]">Nexus</span></span>
                   </div>
-                  <p className="text-sm text-gray-400 leading-relaxed mb-4">
-                    The best deals on electronics, fashion, shoes, home & more — curated from 200+ top brands.
+                  <p className="text-sm text-gray-400 leading-relaxed mb-6">
+                    Our mission is to help you find the absolute best deals from 200+ top brands. To keep our service free and accessible, we partner with retailers and may earn a small commission when you purchase through our links.
                   </p>
+                  <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
+                    <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-widest mb-2 flex items-center gap-2">
+                       <Shield size={12} className="text-[var(--primary)]" /> Affiliate Disclosure
+                    </h4>
+                    <p className="text-[11px] text-gray-400 leading-snug">
+                      DealNexus is a participant in affiliate advertising programs. When you click on links and buy items, we may receive a commission at no extra cost to you. These partnerships do not influence our editorial selections.
+                    </p>
+                  </div>
                 </div>
 
                 {Object.entries(FOOTER_LINKS).map(([heading, links]) => (
@@ -93,7 +102,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <h3 className="text-white font-bold text-sm mb-4 uppercase tracking-wide">{heading}</h3>
                     <ul className="space-y-2.5">
                       {links.map(link => (
-                        <li key={link}><a href="#" className="text-sm text-gray-400 hover:text-white transition-colors">{link}</a></li>
+                        <li key={link}><Link href="#" className="text-sm text-gray-400 hover:text-white transition-colors">{link}</Link></li>
                       ))}
                     </ul>
                   </div>

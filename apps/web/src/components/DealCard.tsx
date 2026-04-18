@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, Star, Flame, Zap, Bell, Tag } from "lucide-react";
+import { Heart, Star, Flame, Zap, Bell, Tag, MessageSquare } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import DealImage from "./DealImage";
+import InteractiveStarRating from "./InteractiveStarRating";
 
 // Merchant color/label map
 const MERCHANT_STYLES: Record<string, { cls: string; label: string; flag?: string }> = {
@@ -72,11 +73,17 @@ export default function DealCard({
   const bodyH = featured && layout !== "grid" ? "min-h-[192px]" : "min-h-[172px]";
 
   return (
-    <a
-      href={`/deal/${deal.id}`}
+    <div
       id={`deal-card-${deal.id}`}
-      className={`deal-card block group bg-white rounded-2xl overflow-hidden cursor-pointer ${cardW}`}
+      className={`deal-card relative group bg-white rounded-2xl overflow-hidden cursor-pointer flex flex-col ${cardW}`}
     >
+      {/* Primary Deal Link (Stretched) */}
+      <a 
+        href={`/deal/${deal.id}`} 
+        className="absolute inset-0 z-0" 
+        aria-label={deal.title}
+      />
+
       {/* ── Image ── */}
       <div className={`relative ${imgH} w-full overflow-hidden bg-gray-100`}>
         <DealImage
@@ -125,13 +132,13 @@ export default function DealCard({
         )}
 
         {/* Alert + heart buttons */}
-        <div className="absolute top-2 right-2 z-10 flex flex-col gap-1">
+        <div className="absolute top-2 right-2 z-20 flex flex-col gap-1">
           <button onClick={setAlert} aria-label="Set price alert"
-            className="rounded-full bg-white p-1.5 shadow-md hover:scale-110 transition-transform">
+            className="relative rounded-full bg-white p-1.5 shadow-md hover:scale-110 transition-transform">
             <Bell size={13} fill={alertSet ? "#f59e0b" : "transparent"} color={alertSet ? "#f59e0b" : "#9ca3af"} strokeWidth={2} />
           </button>
           <button onClick={toggleFavorite} aria-label="Save to favorites"
-            className="rounded-full bg-white p-1.5 shadow-md hover:scale-110 transition-transform">
+            className="relative rounded-full bg-white p-1.5 shadow-md hover:scale-110 transition-transform">
             <Heart size={13} fill={isFavorite ? "#ef4444" : "transparent"} color={isFavorite ? "#ef4444" : "#9ca3af"} strokeWidth={2} />
           </button>
         </div>
@@ -160,21 +167,26 @@ export default function DealCard({
           {deal.title}
         </h3>
 
-        {/* Stars */}
-        <div className="flex items-center gap-1">
-          <span className="stars-row">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Star
-                key={i}
-                size={11}
-                fill={i <= Math.floor(deal.rating) ? "#f59e0b" : "transparent"}
-                color={i <= Math.floor(deal.rating) ? "#f59e0b" : "#d1d5db"}
-                strokeWidth={i <= Math.floor(deal.rating) ? 0 : 1.5}
-              />
-            ))}
-          </span>
-          <span className="text-[11px] font-bold text-gray-700">{deal.rating?.toFixed(1)}</span>
-          <span className="text-[11px] text-gray-400">({deal.reviews ?? deal.review_count ?? 0})</span>
+        {/* Stars, Ratings, and Comments */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <InteractiveStarRating 
+            dealId={deal.id} 
+            initialRating={deal.rating || 0} 
+            readOnly={false} 
+          />
+          <span className="text-[11px] font-bold text-gray-700">{(deal.rating || 0).toFixed(1)}</span>
+          <span className="text-[11px] text-gray-400">({deal.review_count || 0})</span>
+          
+          <div className="h-3 w-px bg-gray-200 mx-1" />
+          
+          <a
+            href={`/deal/${deal.id}#comments`}
+            onClick={(e) => e.stopPropagation()}
+            className="relative z-20 flex items-center gap-1 text-[11px] font-bold text-gray-400 hover:text-[var(--primary)] transition-colors"
+          >
+            <MessageSquare size={12} />
+            <span>{deal.comment_count || 0}</span>
+          </a>
         </div>
 
         {/* Spacer */}
@@ -197,6 +209,6 @@ export default function DealCard({
           )}
         </div>
       </div>
-    </a>
+    </div>
   );
 }

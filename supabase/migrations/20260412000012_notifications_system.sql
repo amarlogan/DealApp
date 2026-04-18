@@ -49,7 +49,11 @@ DO $$
 DECLARE
     admin_id UUID;
 BEGIN
-    SELECT id INTO admin_id FROM public.profiles WHERE email = 'admin@test.com' LIMIT 1;
+    SELECT p.id INTO admin_id 
+    FROM public.profiles p
+    JOIN auth.users u ON p.id = u.id
+    WHERE u.email = 'admin@test.com' 
+    LIMIT 1;
     
     IF admin_id IS NOT NULL THEN
         -- Link notifications to admin for testing

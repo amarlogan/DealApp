@@ -73,9 +73,9 @@ function Carousel({ title, icon, deals, featured = false, seasonTheme = false, s
              <span className="bg-[var(--primary)] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter ml-1">Featured Event</span>
           )}
         </div>
-        <a href={seeAllHref} className={`text-sm font-bold flex items-center gap-1 group ${seasonTheme ? 'text-[var(--primary-dark)]' : 'text-[var(--primary)] hover:text-[var(--primary-dark)]'}`}>
+        <Link href={seeAllHref} className={`text-sm font-bold flex items-center gap-1 group ${seasonTheme ? 'text-[var(--primary-dark)]' : 'text-[var(--primary)] hover:text-[var(--primary-dark)]'}`}>
           See all <ChevronRight size={15} className="group-hover:translate-x-0.5 transition-transform" />
-        </a>
+        </Link>
       </div>
       <div className="relative">
         <button onClick={() => scroll("left")} aria-label="Scroll left"
