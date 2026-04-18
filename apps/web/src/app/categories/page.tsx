@@ -62,7 +62,7 @@ export default async function CategoriesPage() {
 
       {/* Branding Footer */}
       <div className="px-6 py-8 text-center bg-gray-50 border-t border-gray-100">
-        <p className="text-xs font-bold text-gray-400 mb-1 uppercase tracking-widest">DealNexus</p>
+        <p className="text-xs font-bold text-gray-400 mb-1 uppercase tracking-widest">HuntMyDeal</p>
         <p className="text-[10px] text-gray-300 italic">Finding you the best deals, every single day.</p>
       </div>
     </div>

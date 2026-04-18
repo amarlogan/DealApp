@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// DealNexus Product Categories
+// HuntMyDeal Product Categories
 // All deals are organized by product type, not by store.
 // ─────────────────────────────────────────────────────────────────────────────
 

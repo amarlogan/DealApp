@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- DealNexus: Seasonal Deals Many-to-Many Bridge and UI Config
+-- HuntMyDeal: Seasonal Deals Many-to-Many Bridge and UI Config
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- ── 1. Deal Seasons Bridge Table ─────────────────────────────────────────────

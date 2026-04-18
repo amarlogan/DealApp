@@ -82,10 +82,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const deal = await getDeal(id);
-  if (!deal) return { title: "Deal Not Found | DealNexus" };
+  if (!deal) return { title: "Deal Not Found | HuntMyDeal" };
   const savings = deal.original_price - deal.current_price;
   return {
-    title: `${deal.title} — $${deal.current_price.toFixed(2)} (Save $${savings.toFixed(2)}) | DealNexus`,
+    title: `${deal.title} — $${deal.current_price.toFixed(2)} (Save $${savings.toFixed(2)}) | HuntMyDeal`,
     description: `${deal.description?.slice(0, 155)}…`,
   };
 }

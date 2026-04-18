@@ -70,7 +70,7 @@ export default function ResponsiveShell({
               <Percent size={22} className="text-white" strokeWidth={3} />
             </div>
             <span className="text-2xl font-black tracking-tighter text-gray-900 leading-none">
-              Deal<span className="text-[var(--primary)]">Nexus</span>
+              HuntMy<span className="text-[var(--primary)]">Deal</span>
             </span>
           </Link>
 

@@ -2,8 +2,8 @@ import DealListing from "@/components/DealListing";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
 
 export const metadata = {
-  title: "All Deals | DealNexus",
-  description: "Browse all active deals across every category on DealNexus.",
+  title: "All Deals | HuntMyDeal",
+  description: "Browse all active deals across every category on HuntMyDeal.",
 };
 
 export const dynamic = "force-dynamic";

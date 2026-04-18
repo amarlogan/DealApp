@@ -1,6 +1,6 @@
-# Project Skill: DealDash (DealNexus)
+# Project Skill: HuntMyDeal
 
-This document contains the core principles, architectural patterns, and design standards for the DealDash platform. Follow these rules to ensure consistency and maintain project integrity while building new features.
+This document contains the core principles, architectural patterns, and design standards for the HuntMyDeal platform. Follow these rules to ensure consistency and maintain project integrity while building new features.
 
 ## 1. Core Architecture Pattern: "Server Hydrated, Client Managed"
 
@@ -20,7 +20,7 @@ if (action === "delete") { ... }
 
 ## 2. UI & Aesthetic Standards
 
-DealDash is a **premium, high-fidelity** platform. Every UI element must feel intentional and polished.
+HuntMyDeal is a **premium, high-fidelity** platform. Every UI element must feel intentional and polished.
 
 - **Color Palette**: 
   - Primary Brand Green: `#53A318` (Emerald)
@@ -56,7 +56,7 @@ DealDash is a **premium, high-fidelity** platform. Every UI element must feel in
 
 ## 6. Adaptive Multi-Device Workflow (Mobile-First)
 
-DealDash follows an **Adaptive Shell** architecture. The application must provide a distinct, app-like experience for mobile while maintaining a high-density professional experience for desktop.
+HuntMyDeal follows an **Adaptive Shell** architecture. The application must provide a distinct, app-like experience for mobile while maintaining a high-density professional experience for desktop.
 
 ### Mobile Immersive Standards
 - **Core Navigation**: Exclusively use a fixed **Bottom Navigation Bar** for primary actions (Home, Search, Favorites, Notifications, Profile).

@@ -15,14 +15,14 @@ const inter  = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
-  title: "DealNexus | Best Deals on Electronics, Fashion, Home & More",
+  title: "HuntMyDeal | Best Deals on Electronics, Fashion, Home & More",
   description: "Find the best discounts from 200+ brands on electronics, fashion, shoes, home & kitchen, sports, and more. Deals updated daily.",
   keywords: "deals, discounts, electronics deals, fashion sale, shoes deals, home deals, promo code, coupon",
 };
 
 const FOOTER_LINKS = {
   "Categories":  ["Electronics", "Home & Kitchen", "Fashion", "Shoes & Sneakers", "Sports & Outdoors", "Toys & Games"],
-  "DealNexus":   ["About Us", "How It Works", "Partner Brands", "Affiliate Disclosure", "Blog", "Press"],
+  "HuntMyDeal":   ["About Us", "How It Works", "Partner Brands", "Affiliate Disclosure", "Blog", "Press"],
   "Your Account":["Sign In / Register", "Saved Deals", "Price Alerts", "Deal History", "Interests"],
   "Support":     ["Help Center", "Contact Us", "Report a Problem", "Accessibility", "Privacy Policy", "Terms"],
 };
@@ -82,7 +82,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <div className="w-9 h-9 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                       <Percent size={20} className="text-white" strokeWidth={3} />
                     </div>
-                    <span className="text-2xl font-black text-white tracking-tighter">Deal<span className="text-[var(--primary)]">Nexus</span></span>
+                    <span className="text-2xl font-black text-white tracking-tighter">HuntMy<span className="text-[var(--primary)]">Deal</span></span>
                   </div>
                   <p className="text-sm text-gray-400 leading-relaxed mb-6">
                     Our mission is to help you find the absolute best deals from 200+ top brands. To keep our service free and accessible, we partner with retailers and may earn a small commission when you purchase through our links.
@@ -92,7 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                        <Shield size={12} className="text-[var(--primary)]" /> Affiliate Disclosure
                     </h4>
                     <p className="text-[11px] text-gray-400 leading-snug">
-                      DealNexus is a participant in affiliate advertising programs. When you click on links and buy items, we may receive a commission at no extra cost to you. These partnerships do not influence our editorial selections.
+                      HuntMyDeal is a participant in affiliate advertising programs. When you click on links and buy items, we may receive a commission at no extra cost to you. These partnerships do not influence our editorial selections.
                     </p>
                   </div>
                 </div>
@@ -111,7 +111,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
               <div className="border-t border-gray-800">
                 <div className="max-w-7xl mx-auto px-6 py-4 text-center text-xs text-gray-500">
-                  <span>© 2026 DealNexus Inc. All rights reserved.</span>
+                  <span>© 2026 HuntMyDeal Inc. All rights reserved.</span>
                 </div>
               </div>
             </footer>

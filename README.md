@@ -1,6 +1,6 @@
-# DealNexus 🛍️
+# HuntMyDeal 🛍️
 
-DealNexus is a high-performance, product-category-driven affiliate engine. This platform uses a Next.js frontend (App Router) tightly integrated with a local Supabase (PostgreSQL) backend to track user favorites, price alerts, and calculate dynamic price discounts automatically.
+HuntMyDeal is a high-performance, product-category-driven affiliate engine. This platform uses a Next.js frontend (App Router) tightly integrated with a local Supabase (PostgreSQL) backend to track user favorites, price alerts, and calculate dynamic price discounts automatically.
 
 ---
 
@@ -10,7 +10,7 @@ To run this application locally, you must run both the **Supabase Database** and
 
 ### 1. Start Supabase (Backend)
 Ensure you have Docker Desktop installed and running on your machine.
-Open a terminal in the root `DealDash` folder and run:
+Open a terminal in the root `HuntMyDeal` folder and run:
 
 ```bash
 npx supabase start
@@ -23,7 +23,7 @@ npx supabase start
 - **API URL:** `http://127.0.0.1:54321`
 
 ### 2. Start Next.js (Frontend)
-Open a new terminal in the `DealDash/apps/web` directory and start the dev server:
+Open a new terminal in the `HuntMyDeal/apps/web` directory and start the dev server:
 
 ```bash
 cd apps/web

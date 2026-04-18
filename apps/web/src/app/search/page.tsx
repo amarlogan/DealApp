@@ -5,7 +5,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
   const { q } = await searchParams;
   const title = q ? `Search results for "${q}"` : "Search Deals";
   return {
-    title: `${title} | DealNexus`,
+    title: `${title} | HuntMyDeal`,
     description: "Search for the best deals by brand, category, or product.",
   };
 }

@@ -60,7 +60,7 @@ BEGIN
         INSERT INTO public.notifications (user_id, title, content, type, link)
         VALUES 
         (admin_id, 'Price Drop Alert!', 'Sony WH-1000XM5 Headphones just hit your target price of $299!', 'price_drop', '/deals/sony-xm5'),
-        (admin_id, 'Welcome to DealNexus', 'Check out the new homepage layout and customized hero banners.', 'info', '/'),
+        (admin_id, 'Welcome to HuntMyDeal', 'Check out the new homepage layout and customized hero banners.', 'info', '/'),
         (admin_id, 'New Seasonal Sale', 'The Spring Sale is now live! Explore top deals in Fashion and Outdoors.', 'news', '/category/fashion')
         ON CONFLICT DO NOTHING;
     END IF;

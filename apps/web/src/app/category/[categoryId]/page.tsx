@@ -21,11 +21,11 @@ export async function generateMetadata({ params }: { params: Promise<{ categoryI
     .single();
 
   if (!cat) {
-    return { title: "Category Not Found | DealNexus" };
+    return { title: "Category Not Found | HuntMyDeal" };
   }
   
   return {
-    title: `${cat.label} Deals | DealNexus`,
+    title: `${cat.label} Deals | HuntMyDeal`,
     description: `Find the best active deals for ${cat.label}.`,
   };
 }

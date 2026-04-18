@@ -1,7 +1,7 @@
 {
   "name": "services-scrapers",
   "version": "1.0.0",
-  "description": "Mock scrapers for DealNexus",
+  "description": "Mock scrapers for HuntMyDeal",
   "main": "normalizer.js",
   "scripts": {
     "start": "node normalizer.js",

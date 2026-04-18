@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- DealNexus: Fix Community Relationships
+-- HuntMyDeal: Fix Community Relationships
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- 1. Ensure all profiles exist before applying constraints (Retroactive Sync)

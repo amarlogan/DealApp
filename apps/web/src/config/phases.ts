@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// DealNexus Phase Configuration
+// HuntMyDeal Phase Configuration
 // ─────────────────────────────────────────────────────────────────────────────
 // Change `phase` to 2 when you're ready to unlock local deals (beauty, food, etc.)
 // Everything else adjusts automatically.
