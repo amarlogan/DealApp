@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
-import { Heart, Star, Flame, Zap, Bell, Tag, MessageSquare } from "lucide-react";
+import { Heart, Star, Flame, Zap, Bell, Tag, MessageSquare, ThumbsUp, Eye } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import DealImage from "./DealImage";
 import InteractiveStarRating from "./InteractiveStarRating";
@@ -71,6 +72,25 @@ export default function DealCard({
     : featured ? "w-[340px] sm:w-[370px] flex-shrink-0" : "w-[260px] sm:w-[285px] flex-shrink-0";
   const imgH  = featured ? "h-52" : "h-44";
   const bodyH = featured && layout !== "grid" ? "min-h-[192px]" : "min-h-[172px]";
+  const initialScore = deal.score !== undefined ? deal.score : ((deal.upvotes || 0) - (deal.downvotes || 0));
+  const [localScore, setLocalScore] = useState(initialScore);
+  const [hasLiked, setHasLiked] = useState(false);
+
+  const handleQuickLike = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) { openLogin(); return; }
+    if (hasLiked) return;
+
+    setHasLiked(true);
+    setLocalScore(prev => prev + 1);
+
+    await fetch("/api/rate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dealId: deal.id, rating: 5 }), // 5 = Upvote
+    });
+  };
 
   return (
     <div
@@ -78,9 +98,9 @@ export default function DealCard({
       className={`deal-card relative group bg-white rounded-2xl overflow-hidden cursor-pointer flex flex-col ${cardW}`}
     >
       {/* Primary Deal Link (Stretched) */}
-      <a 
+      <Link 
         href={`/deal/${deal.id}`} 
-        className="absolute inset-0 z-0" 
+        className="absolute inset-0 z-10" 
         aria-label={deal.title}
       />
 
@@ -107,9 +127,9 @@ export default function DealCard({
             <span className="bg-blue-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow">
               🔵 Rollback
             </span>
-          ) : deal.badge === "Hot Deal" || deal.badge === "Deal of the Day" ? (
-            <span className="bg-red-500 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow flex items-center gap-1">
-              <Flame size={9} /> {deal.badge}
+          ) : deal.is_hot || deal.badge === "Hot Deal" || deal.badge === "Deal of the Day" ? (
+            <span className="bg-red-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow flex items-center gap-1 animate-seasonal-glow">
+              <Flame size={10} fill="white" /> {deal.is_hot ? "HOT DEAL" : deal.badge}
             </span>
           ) : deal.isPopular ? (
             <span className="bg-white text-pink-600 text-[10px] font-black px-2.5 py-0.5 rounded-full shadow flex items-center gap-1 border border-pink-100">
@@ -167,25 +187,43 @@ export default function DealCard({
           {deal.title}
         </h3>
 
-        {/* Stars, Ratings, and Comments */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <InteractiveStarRating 
-            dealId={deal.id} 
-            initialRating={deal.rating || 0} 
-            readOnly={false} 
-          />
-          <span className="text-[11px] font-bold text-gray-700">{(deal.rating || 0).toFixed(1)}</span>
-          <span className="text-[11px] text-gray-400">({deal.review_count || 0})</span>
+        {/* Engagement Stats */}
+        <div className="flex items-center gap-4 text-[11px] font-bold relative z-20">
+          {/* Votes/Score */}
+          <button 
+            onClick={handleQuickLike}
+            className="flex items-center gap-1.5 transition-all active:scale-95 group/vote"
+            title="Like this deal"
+          >
+            <ThumbsUp 
+              size={12} 
+              className={localScore >= 10 ? "text-red-500" : localScore > 0 ? "text-green-600" : "text-gray-500"} 
+              fill={hasLiked || localScore > 0 ? "currentColor" : "none"}
+              fillOpacity={0.2}
+            />
+            <span className={`transition-colors ${localScore >= 10 ? "text-red-600 font-black" : "text-gray-900 font-black"}`}>
+              {String(localScore)}
+            </span>
+          </button>
           
-          <div className="h-3 w-px bg-gray-200 mx-1" />
-          
+          <div className="w-px h-3 bg-gray-100" />
+
+          {/* Views */}
+          <div className="flex items-center gap-1.5">
+            <Eye size={12} className="text-gray-500" />
+            <span className="text-gray-900 font-black">{String(deal.view_count || 0)}</span>
+          </div>
+
+          <div className="w-px h-3 bg-gray-100" />
+
+          {/* Comments */}
           <a
             href={`/deal/${deal.id}#comments`}
             onClick={(e) => e.stopPropagation()}
-            className="relative z-20 flex items-center gap-1 text-[11px] font-bold text-gray-400 hover:text-[var(--primary)] transition-colors"
+            className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors group/stat"
           >
-            <MessageSquare size={12} />
-            <span>{deal.comment_count || 0}</span>
+            <MessageSquare size={12} className="text-gray-500 group-hover/stat:text-[var(--primary)]" />
+            <span className="text-gray-900 font-black group-hover/stat:text-[var(--primary)]">{String(deal.comment_count || 0)}</span>
           </a>
         </div>
 

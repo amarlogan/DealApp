@@ -7,7 +7,8 @@
     "services/*"
   ],
   "scripts": {
-    "dev:web": "npm run dev --workspace=apps/web",
+    "compass:update": "node scripts/update-compass.js",
+    "dev:web": "npm run compass:update && npm run dev --workspace=apps/web",
     "dev:scrapers": "npm run start --workspace=services/scrapers"
   }
 }

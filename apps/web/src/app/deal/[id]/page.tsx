@@ -6,9 +6,9 @@ import {
   Bookmark, ChevronRight, Info, AlertCircle 
 } from "lucide-react";
 import DealImage from "@/components/DealImage";
-import InteractiveStarRating from "@/components/InteractiveStarRating";
+import VotingSection from "@/components/VotingSection";
 import CommentSection from "@/components/CommentSection";
-import RatingSection from "@/components/RatingSection";
+import ViewTracker from "@/components/ViewTracker";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import type { Metadata } from "next";
 
@@ -30,6 +30,11 @@ type Deal = {
   promo_code: string | null;
   badge: string | null;
   comment_count: number;
+  upvotes: number;
+  downvotes: number;
+  view_count: number;
+  score: number;
+  is_hot: boolean;
 };
 
 async function getDeal(id: string): Promise<any | null> {
@@ -69,7 +74,10 @@ async function getDeal(id: string): Promise<any | null> {
       if (r.rating >= 1 && r.rating <= 5) distribution[r.rating - 1]++;
     });
 
-    return { ...data, userRating, distribution };
+    const score = (data.upvotes || 0) - (data.downvotes || 0);
+    const is_hot = score >= 10 || (data.discount_percentage >= 25) || (data.view_count >= 100) || data.is_popular;
+
+    return { ...data, userRating, distribution, score, is_hot };
   } catch {
     return null;
   }
@@ -170,12 +178,14 @@ export default async function DealDetailPage({
               {deal.title}
             </h1>
 
-            {/* Slickdeals Stats Bar */}
+            {/* Stats Bar */}
             <div className="flex items-center gap-6 mb-10 pb-6 border-b border-gray-100">
                <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
-                  <button className="text-gray-400 hover:text-[var(--primary)] transition-colors"><ThumbsUp size={18} /></button>
-                  <span className="font-black text-gray-900">{simulatedVotes}</span>
-                  <button className="text-gray-400 hover:text-red-500 transition-colors"><ThumbsDown size={18} /></button>
+                  <div className="text-gray-400"><ThumbsUp size={18} /></div>
+                  <span className={`font-black ${deal.score >= 10 ? "text-red-500" : "text-gray-900"}`}>
+                    {deal.score > 0 ? `+${deal.score}` : deal.score}
+                  </span>
+                  <div className="text-gray-400"><ThumbsDown size={18} /></div>
                </div>
                <div className="flex items-center gap-2 text-gray-400 text-sm font-bold">
                   <MessageSquare size={18} />
@@ -185,7 +195,7 @@ export default async function DealDetailPage({
                </div>
                <div className="flex items-center gap-2 text-gray-400 text-sm font-bold">
                   <Eye size={18} />
-                  <span className="text-gray-900">{simulatedViews.toLocaleString()} Views</span>
+                  <span className="text-gray-900">{deal.view_count?.toLocaleString() || 0} Views</span>
                </div>
             </div>
 
@@ -249,12 +259,14 @@ export default async function DealDetailPage({
         </div>
       </div>
 
-      <RatingSection 
+      <ViewTracker dealId={deal.id} />
+
+      <VotingSection 
         dealId={deal.id}
-        initialRating={deal.rating}
-        initialReviewCount={deal.review_count}
+        initialUpvotes={deal.upvotes || 0}
+        initialDownvotes={deal.downvotes || 0}
         initialUserRating={deal.userRating}
-        initialDistribution={deal.distribution}
+        viewCount={deal.view_count || 0}
       />
 
       {/* Tabs Section */}
@@ -284,7 +296,7 @@ export default async function DealDetailPage({
                <AlertCircle className="text-red-500" /> Product Highlights
             </h3>
             <ul className="list-none p-0 space-y-4">
-              {deal.description.split(". ").filter(Boolean).map((line, i) => (
+              {(deal.description || "").split(". ").filter(Boolean).map((line: string, i: number) => (
                 <li key={i} className="flex gap-3 items-start bg-gray-50 p-4 rounded-2xl border border-gray-100">
                   <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-green-500 shadow-sm flex-shrink-0 mt-0.5">✓</div>
                   {line.trim().replace(/\.$/, "")}.

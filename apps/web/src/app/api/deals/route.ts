@@ -61,7 +61,28 @@ export async function GET(req: NextRequest) {
     const { data, error, count } = await query;
     if (error) throw error;
 
-    return NextResponse.json({ deals: data ?? [], total: count ?? 0, page, limit });
+    const enrichedDeals = (data ?? []).map((deal: any) => {
+      const score = (deal.upvotes || 0) - (deal.downvotes || 0);
+      const views = deal.view_count || 0;
+      
+      // Calculate is_hot: 
+      // 1. If meets vote threshold (Score >= 10)
+      // 2. OR high discount (25%+)
+      // 3. OR high view count (100+)
+      // 4. OR manual popular flag
+      const isActuallyHot = score >= 10;
+      const isHighDiscount = deal.discount_percentage >= 25;
+      const isHighViews = deal.view_count >= 100;
+      const isManualPopular = deal.is_popular;
+      
+      return {
+        ...deal,
+        score,
+        is_hot: isActuallyHot || isHighDiscount || isHighViews || isManualPopular
+      };
+    });
+
+    return NextResponse.json({ deals: enrichedDeals, total: count ?? 0, page, limit });
   } catch (err) {
     // Fallback to local JSON if Supabase not connected
     try {

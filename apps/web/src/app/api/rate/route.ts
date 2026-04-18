@@ -39,8 +39,8 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({ 
-      userRating, 
-      distribution: distribution.slice(1) // return [1s, 2s, 3s, 4s, 5s]
+      userRating: userRating, // 1 (Down), 5 (Up)
+      distribution: [0, 0, 0, 0, 0] // Deprecated for votes
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -57,10 +57,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { dealId, rating } = await req.json();
+    const { dealId, rating } = await req.json(); // rating: 1 (Down), 5 (Up)
 
-    if (!dealId || !rating || rating < 1 || rating > 5) {
-      return NextResponse.json({ error: "Invalid rating data" }, { status: 400 });
+    if (!dealId || !rating || (rating !== 1 && rating !== 5)) {
+      return NextResponse.json({ error: "Invalid vote data. Use 1 for Down or 5 for Up." }, { status: 400 });
     }
 
     // Upsert the rating
@@ -80,14 +80,16 @@ export async function POST(req: NextRequest) {
     // Fetch the NEW aggregate from the deals table (synced by trigger)
     const { data: updatedDeal } = await supabase
       .from("deals")
-      .select("rating, review_count")
+      .select("upvotes, downvotes, view_count")
       .eq("id", dealId)
       .single();
 
     return NextResponse.json({ 
       success: true,
-      updatedRating: updatedDeal?.rating || 0,
-      updatedReviewCount: updatedDeal?.review_count || 0
+      upvotes: updatedDeal?.upvotes || 0,
+      downvotes: updatedDeal?.downvotes || 0,
+      score: (updatedDeal?.upvotes || 0) - (updatedDeal?.downvotes || 0),
+      viewCount: updatedDeal?.view_count || 0
     });
   } catch (err: any) {
     console.error("Rate API Error:", err);

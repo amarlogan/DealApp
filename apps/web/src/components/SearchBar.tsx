@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 
-export default function SearchBar() {
+export default function SearchBar({ autoFocus = false }: { autoFocus?: boolean }) {
   const [query, setQuery] = useState("");
   const router = useRouter();
 
@@ -29,6 +29,7 @@ export default function SearchBar() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search deals, brands, categories…"
           className="w-full py-2.5 pl-10 pr-4 outline-none text-gray-700 placeholder-gray-400 text-sm font-medium bg-transparent"
+          autoFocus={autoFocus}
         />
       </div>
       <button 
