@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { createClient } from "@/lib/supabase";
-import { Heart, Bell, Zap, TrendingUp, Settings, ExternalLink, ChevronRight } from "lucide-react";
+import { Bookmark, Bell, Zap, TrendingUp, Settings, ExternalLink, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 type Stats = { saved: number; alerts: number; clicks: number };
@@ -64,7 +64,7 @@ export default function ProfilePage() {
       {/* Stats Row */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { icon: <Heart size={22} />, label: "Saved Deals", value: stats.saved, href: "/profile/saved", color: "text-rose-500 bg-rose-50" },
+          { icon: <Bookmark size={22} />, label: "Saved Deals", value: stats.saved, href: "/profile/saved", color: "text-[#53A318] bg-emerald-50" },
           { icon: <Bell size={22} />,  label: "Price Alerts", value: stats.alerts, href: "/profile/alerts", color: "text-amber-500 bg-amber-50" },
           { icon: <Zap size={22} />,   label: "Deals Clicked", value: stats.clicks, href: "#", color: "text-blue-500 bg-blue-50" },
         ].map(s => (
@@ -80,7 +80,7 @@ export default function ProfilePage() {
       {recentSaved.length > 0 && (
         <div className="section-box">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-black text-gray-900 flex items-center gap-2"><Heart size={18} className="text-rose-500" /> Recently Saved</h2>
+            <h2 className="text-lg font-black text-gray-900 flex items-center gap-2"><Bookmark size={18} className="text-[#53A318]" /> Recently Saved</h2>
             <Link href="/profile/saved" className="text-sm font-bold text-[#53A318] flex items-center gap-1 hover:text-[#3d7c10]">
               See all <ChevronRight size={14} />
             </Link>
@@ -106,7 +106,7 @@ export default function ProfilePage() {
         <h2 className="text-lg font-black text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
-            { href: "/profile/saved",     icon: <Heart size={18} />,     label: "My Saved Deals",          sub: "View all your bookmarked deals" },
+            { href: "/profile/saved",     icon: <Bookmark size={18} />,     label: "My Saved Deals",          sub: "View all your bookmarked deals" },
             { href: "/profile/alerts",    icon: <Bell size={18} />,      label: "Price Alerts",             sub: "Get notified when prices drop" },
             { href: "/profile/settings",  icon: <Settings size={18} />,  label: "Interests & Preferences",  sub: "Personalize your deal feed" },
             { href: "/deals",             icon: <TrendingUp size={18} />, label: "Browse All Deals",         sub: "Explore all active deals" },

@@ -30,7 +30,7 @@ type Deal = {
 };
 
 // Extracted from DB types
-type UICategory = { id: string; label: string; emoji: string; phase: number; description?: string };
+type UICategory = { id: string; label: string; emoji: string; phase: number; description?: string; deal_count?: number };
 type UISeason = { id: string; name: string; css_variables: any };
 type LandingSection = { 
   id: string; 
@@ -54,8 +54,8 @@ type HeroSlide = {
   bg_gradient?: string;
 };
 
-function Carousel({ title, icon, deals, featured = false, seasonTheme = false, seeAllHref = "#" }: {
-  title: string; icon: React.ReactNode; deals: Deal[]; featured?: boolean; seasonTheme?: boolean; seeAllHref?: string;
+function Carousel({ title, icon, deals, favoriteIds, featured = false, seasonTheme = false, seeAllHref = "#" }: {
+  title: string; icon: React.ReactNode; deals: Deal[]; favoriteIds?: Set<string>; featured?: boolean; seasonTheme?: boolean; seeAllHref?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const scroll = (dir: "left" | "right") =>
@@ -83,7 +83,14 @@ function Carousel({ title, icon, deals, featured = false, seasonTheme = false, s
           <ChevronLeft size={18} className="text-gray-600" />
         </button>
         <div ref={ref} className="carousel-track">
-          {deals.map(deal => <DealCard key={deal.id} deal={deal} featured={featured || seasonTheme} />)}
+          {deals.map(deal => (
+            <DealCard 
+              key={deal.id} 
+              deal={deal} 
+              featured={featured || seasonTheme} 
+              initialIsSaved={favoriteIds?.has(deal.id)} 
+            />
+          ))}
         </div>
         <button onClick={() => scroll("right")} aria-label="Scroll right"
           className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 hidden md:flex w-9 h-9 rounded-full bg-white shadow-md border border-gray-200 items-center justify-center hover:bg-gray-50 transition-colors">
@@ -173,17 +180,69 @@ export default function HomeClient({
   landingSections,
   topCategories,
   upcomingCategories,
-  heroSlides = []
+  heroSlides = [],
+  favoriteIds = []
 }: { 
   initialDeals: Deal[];
   landingSections: LandingSection[];
   topCategories: UICategory[];
   upcomingCategories: UICategory[];
   heroSlides?: HeroSlide[];
+  favoriteIds?: string[];
 }) {
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
+  const [pagedDeals, setPagedDeals] = useState<Deal[]>([]);
+  const [page, setPage] = useState(2); // Initial deals are "page 1"
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [autoScrollCount, setAutoScrollCount] = useState(0);
+  const loaderRef = useRef<HTMLDivElement>(null);
+  const favSet = new Set(favoriteIds);
   const deals = initialDeals;
   const { hh, mm, ss }   = useCountdown(4, 23, 17);
+
+  // Initialize paged deals with a slice of initial deals to avoid empty state
+  useEffect(() => {
+    if (pagedDeals.length === 0 && initialDeals.length > 0) {
+      setPagedDeals(initialDeals.slice(0, 20));
+    }
+  }, [initialDeals]);
+
+  // Intersection Observer for Infinite Scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && autoScrollCount < 5) {
+          loadMoreDeals();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loaderRef.current) observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loading, autoScrollCount]);
+
+  const loadMoreDeals = async () => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/deals?page=${page}&limit=24`);
+      const data = await res.json();
+      if (data.deals && data.deals.length > 0) {
+        setPagedDeals(prev => [...prev, ...data.deals]);
+        setPage(p => p + 1);
+        setAutoScrollCount(c => c + 1);
+        if (data.deals.length < 24) setHasMore(false);
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error loading deals:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Auto-advance hero carousel
   useEffect(() => {
@@ -217,47 +276,52 @@ export default function HomeClient({
     <div className="animate-in w-full space-y-6 pb-10">
 
       {/* ── Hero Carousel ── */}
-      <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl min-h-[320px] lg:min-h-[460px] bg-black group/hero">
+      <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl min-h-[320px] lg:min-h-[360px] bg-black group/hero">
         {heroSlides.length > 0 ? (
-          heroSlides.map((slide, idx) => (
-            <div 
-              key={slide.id}
-              className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-                idx === currentHeroIndex ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
-              }`}
-            >
-              {/* Background with Gradient Overlay */}
+          heroSlides.map((slide, idx) => {
+            const isActive = idx === currentHeroIndex;
+            return (
               <div 
-                className={`absolute inset-0 bg-cover bg-center transition-transform duration-[8000ms] ease-linear ${
-                   idx === currentHeroIndex ? "scale-110" : "scale-100"
+                key={slide.id}
+                className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                  isActive ? "opacity-100 scale-100 z-10" : "opacity-0 scale-105 pointer-events-none -z-10 invisible"
                 }`}
-                style={{ backgroundImage: `url('${slide.image_url}')` }} 
-              />
-              <div className={`absolute inset-0 bg-gradient-to-r ${slide.bg_gradient || 'from-black/80 via-black/40 to-transparent'}`} />
+              >
+                {/* Background with Gradient Overlay */}
+                <div 
+                  className={`absolute inset-0 bg-cover bg-center bg-gray-900 transition-transform duration-[8000ms] ease-linear ${
+                     isActive ? "scale-110" : "scale-100"
+                  }`}
+                  style={{ backgroundImage: `url('${slide.image_url}')` }} 
+                />
+                <div className={`absolute inset-0 bg-gradient-to-r ${slide.bg_gradient || 'from-black/80 via-black/40 to-transparent'}`} />
 
-              <div className="relative z-10 h-full p-8 lg:p-20 flex flex-col justify-center">
-                <div className="max-w-2xl">
-                  {slide.tag_text && (
-                    <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white text-[10px] lg:text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full mb-6 border border-white/20 animate-in slide-in-from-bottom-4 duration-500">
-                      <Sparkles size={12} className="text-[#90e050]" /> {slide.tag_text}
+                {isActive && (
+                  <div key={`content-${idx}`} className="relative z-20 h-full p-8 lg:px-16 lg:py-10 flex flex-col justify-center">
+                    <div className="max-w-2xl">
+                      {slide.tag_text && (
+                        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white text-[10px] lg:text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full mb-4 border border-white/20 animate-in slide-in-from-bottom-4 duration-500">
+                          <Sparkles size={12} className="text-[#90e050]" /> {slide.tag_text}
+                        </div>
+                      )}
+                      <h1 className="text-4xl lg:text-6xl font-black tracking-tight leading-[1] text-white mb-3 drop-shadow-2xl animate-in slide-in-from-bottom-8 duration-700">
+                        {slide.title}<br />
+                        {slide.accent_text && <span className="text-[#90e050] inline-block mt-2">{slide.accent_text}</span>}
+                      </h1>
+                      <p className="text-base lg:text-lg text-white/80 font-medium mb-8 max-w-xl leading-relaxed animate-in slide-in-from-bottom-10 duration-[900ms]">
+                        {slide.subtitle}
+                      </p>
+                      <div className="flex flex-wrap gap-4 animate-in slide-in-from-bottom-12 duration-1000">
+                        <Link href={slide.button_link || "/deals"} className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-8 py-3.5 rounded-full font-black shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3 text-sm lg:text-base">
+                          <Percent size={18} /> {slide.button_text || "Browse Deals"}
+                        </Link>
+                      </div>
                     </div>
-                  )}
-                  <h1 className="text-5xl lg:text-7xl font-black tracking-tight leading-[0.9] text-white mb-4 drop-shadow-2xl animate-in slide-in-from-bottom-8 duration-700">
-                    {slide.title}<br />
-                    {slide.accent_text && <span className="text-[#90e050] inline-block mt-2">{slide.accent_text}</span>}
-                  </h1>
-                  <p className="text-base lg:text-xl text-white/80 font-medium mb-10 max-w-lg leading-relaxed animate-in slide-in-from-bottom-10 duration-[900ms]">
-                    {slide.subtitle}
-                  </p>
-                  <div className="flex flex-wrap gap-4 animate-in slide-in-from-bottom-12 duration-1000">
-                    <Link href={slide.button_link || "/deals"} className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-10 py-4 rounded-full font-black shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3 text-sm lg:text-base">
-                      <Percent size={18} /> {slide.button_text || "Browse Deals"}
-                    </Link>
                   </div>
-                </div>
+                )}
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           /* Fallback static hero if no slides */
           <div className="relative z-10 p-8 lg:p-14 flex flex-col lg:flex-row items-center justify-between gap-8 h-full bg-gradient-to-r from-[#1a3a0f] via-[#2a5c18] to-[#4a8a2a]">
@@ -300,37 +364,38 @@ export default function HomeClient({
                 </button>
             </>
         )}
+
+        {/* Floating Flash Deals Timer */}
+        {flashDeals.length > 0 && (
+            <div className="absolute bottom-6 right-6 z-20 hidden md:flex flex-wrap items-center gap-4 bg-black/40 backdrop-blur-xl border border-white/20 rounded-2xl px-5 py-3 shadow-2xl animate-in fade-in zoom-in duration-500">
+              <div className="flex flex-col">
+                <div className="text-white font-black text-sm tracking-tight flex items-center gap-1.5"><Zap size={14} className="text-[#ff6128] fill-[#ff6128]" /> Flash Deals</div>
+                <div className="text-white/70 text-[10px] uppercase tracking-wider font-bold">Ends soon</div>
+              </div>
+              <div className="flex items-center gap-1">
+                {[{val:hh,label:"h"},{val:mm,label:"m"},{val:ss,label:"s"}].map((u,i) => (
+                  <div key={i} className="flex items-center gap-0.5">
+                    <div className="bg-white/10 border border-white/5 text-white font-black text-sm px-2 py-1 rounded min-w-[32px] text-center">{u.val}</div>
+                    <span className="text-white/50 text-[10px] font-bold mr-1">{u.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+        )}
       </div>
 
-      {/* ── Manual Category Carousel ── */}
-      <CategoryCarousel categories={topCategories} />
 
-      {/* ── Flash Deals Timer ── */}
-      {flashDeals.length > 0 && (
-        <div className="bg-gradient-to-r from-[#1a1a1a] to-[#2e2e2e] rounded-2xl px-6 py-4 flex items-center justify-between flex-wrap gap-4 shadow">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">⚡</span>
-            <div>
-              <div className="text-white font-black text-lg">Flash Deals</div>
-              <div className="text-gray-400 text-sm">40%+ off — ends soon!</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="text-gray-400 text-sm font-medium mr-1">Ends in:</div>
-            {[{val:hh,label:"hr"},{val:mm,label:"min"},{val:ss,label:"sec"}].map((u,i) => (
-              <div key={i} className="flex items-center gap-1.5">
-                <div className="bg-[#ff6128] text-white font-black text-xl px-3 py-1.5 rounded-lg min-w-[52px] text-center timer-digit">{u.val}</div>
-                <span className="text-gray-500 text-xs">{u.label}</span>
-                {i < 2 && <span className="text-[#ff6128] font-black text-xl">:</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* ── Deal Carousels — Database Driven ── */}
       <div id="deals" className="space-y-0">
-        <Carousel title="Top Deals Today 🔥" icon={<TrendingUp size={22}/>} deals={featured} featured seeAllHref="/deals?featured=true" />
+        <Carousel 
+          title="Top Deals Today 🔥" 
+          icon={<TrendingUp size={22}/>} 
+          deals={featured} 
+          favoriteIds={favSet} 
+          featured 
+          seeAllHref="/deals?featured=true" 
+        />
         
         {landingSections.map(sec => {
           // Handle potential array or object from Supabase join
@@ -344,6 +409,7 @@ export default function HomeClient({
                 title={sec.title || cat.label}
                 icon={<span className="text-xl">{cat.emoji}</span>}
                 deals={byCat(sec.category_id, sec.max_items)}
+                favoriteIds={favSet}
                 seeAllHref={`/category/${sec.category_id}`}
               />
             );
@@ -356,6 +422,7 @@ export default function HomeClient({
                 title={sec.title || season.name}
                 icon={<Sparkles size={22} className="text-amber-500" />}
                 deals={bySeason(sec.season_id, sec.max_items)}
+                favoriteIds={favSet}
                 seasonTheme
                 seeAllHref={`/deals?season=${sec.season_id}`}
               />
@@ -366,30 +433,78 @@ export default function HomeClient({
         })}
       </div>
 
-      {/* "See more categories" Section requested by user */}
-      <div className="py-6 flex justify-center">
-        <Link 
-          href="/deals" 
-          className="bg-white border-2 border-gray-200 text-gray-700 hover:border-[var(--primary)] hover:text-[var(--primary)] font-bold py-3 px-8 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-2"
-        >
-          View All Categories & Deals <ChevronRight size={18} />
-        </Link>
-      </div>
-
-      {/* ── Coming Soon Section ── */}
-      {upcomingCategories.length > 0 && (
-        <div className="section-box text-center py-8">
-          <h2 className="text-xl font-black text-gray-900 mb-2">More Categories Coming Soon 🚀</h2>
-          <p className="text-gray-500 text-sm mb-5">We're adding beauty, food, travel & local deals. Stay tuned!</p>
-          <div className="flex justify-center flex-wrap gap-3">
-            {upcomingCategories.map(cat => (
-              <div key={cat.id} className="flex items-center gap-2 bg-gray-100 text-gray-500 px-4 py-2 rounded-full text-sm font-semibold">
-                {cat.emoji} {cat.label} <span className="coming-soon-badge">Soon</span>
-              </div>
-            ))}
+      {/* ── Explore All Deals Feed ── */}
+      <div id="explore-deals" className="pt-16 border-t border-gray-100">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="p-2 bg-[var(--primary-light)] rounded-xl text-[var(--primary)]">
+            <TrendingUp size={24} />
+          </div>
+          <div>
+            <h2 className="text-3xl font-black text-gray-900 tracking-tight">Explore More Deals</h2>
+            <p className="text-gray-500 text-sm font-medium">Endless discounts, updated every hour</p>
           </div>
         </div>
-      )}
+        
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {pagedDeals.map(deal => (
+            <DealCard 
+              key={deal.id} 
+              deal={deal} 
+              initialIsSaved={favSet.has(deal.id)} 
+            />
+          ))}
+        </div>
+
+        {hasMore && (
+          <div className="py-12 flex flex-col items-center gap-4">
+            {autoScrollCount >= 5 ? (
+              <button 
+                onClick={loadMoreDeals}
+                disabled={loading}
+                className="bg-white border-2 border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white px-10 py-4 rounded-full font-black shadow-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+              >
+                {loading ? "Loading more..." : "Load More Deals"}
+              </button>
+            ) : (
+              <div ref={loaderRef} className="flex gap-2">
+                <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-bounce" />
+                <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-bounce [animation-delay:0.2s]" />
+                <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-bounce [animation-delay:0.4s]" />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Coming Soon Section (Automated) ── */}
+      {(() => {
+        const refilling = topCategories.filter(c => c.deal_count === 0);
+        const combined = [...refilling, ...upcomingCategories];
+        
+        if (combined.length === 0) return null;
+        
+        return (
+          <div className="section-box text-center py-10 bg-gray-50/50 border-dashed border-2 border-gray-200">
+            <h2 className="text-xl font-black text-gray-900 mb-2">More Categories Coming Soon 🚀</h2>
+            <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">We're constantly hunting for more discounts! These categories are being refilled or prepared for launch.</p>
+            <div className="flex justify-center flex-wrap gap-3">
+              {combined.map(cat => {
+                const isRefilling = (cat as any).deal_count === 0 && (cat as any).is_active;
+                return (
+                  <div key={cat.id} className="flex items-center gap-2 bg-white border border-gray-100 shadow-sm text-gray-600 px-4 py-2.5 rounded-full text-sm font-bold transition-all hover:scale-105">
+                    {cat.emoji} {cat.label} 
+                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${
+                      isRefilling ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700 font-black"
+                    }`}>
+                      {isRefilling ? "Refilling" : "Soon"}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Newsletter ── */}
       <div className="bg-gradient-to-br from-[var(--primary)] to-[#2d7a00] rounded-3xl p-8 lg:p-12 text-white text-center shadow-xl">

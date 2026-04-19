@@ -44,21 +44,20 @@ export default function CommentSection({ dealId }: { dealId: string }) {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent, parentId: string | null = null) => {
-    e.preventDefault();
+  const handleSubmit = async (content: string, parentId: string | null = null) => {
     if (!user) {
       openLogin();
       return;
     }
 
-    if (!newComment.trim()) return;
+    if (!content.trim()) return;
 
     setSubmitting(true);
     try {
       const res = await fetch("/api/comments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dealId, content: newComment, parentId }),
+        body: JSON.stringify({ dealId, content, parentId }),
       });
 
       if (res.ok) {
@@ -88,7 +87,7 @@ export default function CommentSection({ dealId }: { dealId: string }) {
 
       <div className="p-6">
         {/* Post Comment Input */}
-        <form onSubmit={(e) => handleSubmit(e)} className="mb-8">
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(newComment); }} className="mb-8">
           <div className="relative group">
             <textarea
               value={newComment}
@@ -132,7 +131,12 @@ export default function CommentSection({ dealId }: { dealId: string }) {
         ) : (
           <div className="space-y-6">
             {rootComments.map((comment) => (
-              <CommentItem key={comment.id} comment={comment} allComments={comments} />
+              <CommentItem 
+                key={comment.id} 
+                comment={comment} 
+                allComments={comments} 
+                onReply={handleSubmit}
+              />
             ))}
           </div>
         )}
@@ -141,13 +145,49 @@ export default function CommentSection({ dealId }: { dealId: string }) {
   );
 }
 
-function CommentItem({ comment, allComments }: { comment: Comment; allComments: Comment[] }) {
+function CommentItem({ comment, allComments, onReply }: { 
+  comment: Comment; 
+  allComments: Comment[];
+  onReply: (content: string, parentId: string) => Promise<void>;
+}) {
+  const [isReplying, setIsReplying] = useState(false);
+  const [replyText, setReplyText] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReported, setIsReported] = useState(false);
+
   const replies = allComments.filter((c) => c.parent_id === comment.id);
   const date = new Date(comment.created_at).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
+
+  const handleReport = async () => {
+    if (isReported) return;
+    try {
+      const res = await fetch("/api/comments/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ commentId: comment.id }),
+      });
+      if (res.ok) {
+        setIsReported(true);
+      }
+    } catch (err) {
+      console.error("Report Error:", err);
+    }
+  };
+
+  const submitReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!replyText.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    await onReply(replyText, comment.id);
+    setIsReplying(false);
+    setReplyText("");
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="group/comment relative">
@@ -177,17 +217,58 @@ function CommentItem({ comment, allComments }: { comment: Comment; allComments: 
             <p className="text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">{comment.content}</p>
           </div>
           
-          {/* Action (simulated reply for now) */}
-          <div className="mt-2 flex items-center gap-4 opacity-0 group-hover/comment:opacity-100 transition-opacity">
-             <button className="text-xs font-black text-gray-400 hover:text-[var(--primary)] transition-colors uppercase tracking-wider">Reply</button>
-             <button className="text-xs font-black text-gray-400 hover:text-red-500 transition-colors uppercase tracking-wider">Report</button>
+          {/* Actions */}
+          <div className="mt-2 flex items-center gap-4 transition-opacity">
+             <button 
+               onClick={() => setIsReplying(!isReplying)}
+               className={`text-[10px] font-black uppercase tracking-widest transition-colors ${isReplying ? "text-[var(--primary)]" : "text-gray-400 hover:text-[var(--primary)]"}`}
+             >
+               {isReplying ? "Cancel" : "Reply"}
+             </button>
+             <button 
+               onClick={handleReport}
+               disabled={isReported}
+               className={`text-[10px] font-black uppercase tracking-widest transition-colors ${isReported ? "text-red-500 opacity-50 cursor-default" : "text-gray-400 hover:text-red-500"}`}
+             >
+               {isReported ? "Reported" : "Report"}
+             </button>
           </div>
+
+          {/* Inline Reply Form */}
+          {isReplying && (
+            <form onSubmit={submitReply} className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="relative">
+                <textarea
+                  autoFocus
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Type your reply..."
+                  className="w-full bg-white border-2 border-gray-100 rounded-xl p-3 min-h-[100px] transition-all focus:border-[var(--primary)] outline-none text-sm text-gray-700"
+                  disabled={isSubmitting}
+                />
+                <div className="mt-2 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !replyText.trim()}
+                    className="bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg shadow-sm hover:opacity-90 transition-all disabled:opacity-50"
+                  >
+                    {isSubmitting ? "Posting..." : "Submit Reply"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
 
           {/* Nested Replies */}
           {replies.length > 0 && (
             <div className="mt-4 ml-2 pl-6 border-l-2 border-gray-100 space-y-6">
               {replies.map((reply) => (
-                <CommentItem key={reply.id} comment={reply} allComments={allComments} />
+                <CommentItem 
+                  key={reply.id} 
+                  comment={reply} 
+                  allComments={allComments} 
+                  onReply={onReply}
+                />
               ))}
             </div>
           )}

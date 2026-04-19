@@ -9,6 +9,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing dealId" }, { status: 400 });
     }
 
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(dealId);
+    if (!isUUID) {
+      return NextResponse.json({ success: true, message: "Skipping view count for mock deal" });
+    }
+
     const supabase = createSupabaseAdmin();
     
     // Call the RPC function to increment view count atomically

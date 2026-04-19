@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Grid, Search, Heart, User } from "lucide-react";
+import { Home, Grid, Search, Bookmark, User } from "lucide-react";
 
 export default function MobileBottomNav({ onSearchOpen }: { onSearchOpen: () => void }) {
   const pathname = usePathname();
@@ -11,7 +11,7 @@ export default function MobileBottomNav({ onSearchOpen }: { onSearchOpen: () => 
     { label: "Home", href: "/", icon: Home },
     { label: "Categories", href: "/categories", icon: Grid },
     { label: "Search", href: "#", icon: Search, onClick: onSearchOpen },
-    { label: "Saved", href: "/favorites", icon: Heart },
+    { label: "Saved", href: "/profile/saved", icon: Bookmark },
     { label: "Profile", href: "/profile", icon: User },
   ];
 

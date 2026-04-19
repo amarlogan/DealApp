@@ -10,9 +10,12 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(dealId);
+    if (!isUUID) {
+      return NextResponse.json({ comments: [] });
+    }
+
     const supabase = await createSupabaseServerClient();
-    
-    // Fetch comments with profiles
     const { data, error } = await supabase
       .from("comments")
       .select(`
@@ -32,6 +35,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ comments: data || [] });
   } catch (err: any) {
+    console.error("GET Comments Error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
@@ -51,7 +55,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // 1. Insert the comment
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(dealId);
+    if (!isUUID) {
+      return NextResponse.json({ error: "Commenting is only available for verified community deals" }, { status: 400 });
+    }
+
     const { data, error } = await supabase
       .from("comments")
       .insert({

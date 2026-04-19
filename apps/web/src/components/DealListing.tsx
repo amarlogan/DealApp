@@ -124,6 +124,30 @@ export default function DealListing({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sort, categoryId, seasonId, isFeatured, searchQuery]);
 
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (loading || loadingMore || !hasMore) return;
+
+    const currentObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: '400px' } 
+    );
+
+    if (observerTarget.current) {
+      currentObserver.observe(observerTarget.current);
+    }
+
+    return () => {
+      currentObserver.disconnect();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, loadingMore, hasMore, page, sort]);
+
   const loadMore = () => {
     const next = page + 1;
     setPage(next);
@@ -178,16 +202,15 @@ export default function DealListing({
             ))}
           </div>
 
+          {/* Invisible Observer Target / Loading Indicator */}
           {hasMore && (
-            <div className="mt-12 flex justify-center">
-              <button
-                onClick={loadMore}
-                disabled={loadingMore}
-                className="bg-white border-2 border-[#53A318] text-[#53A318] hover:bg-[#53A318] hover:text-white font-bold py-3 px-8 rounded-full shadow-sm hover:shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
-              >
-                {loadingMore && <Loader2 size={16} className="animate-spin" />}
-                {loadingMore ? "Loading..." : "Load More Deals"}
-              </button>
+            <div ref={observerTarget} className="mt-8 pt-8 flex justify-center w-full min-h-[60px]">
+              {loadingMore ? (
+                <div className="flex items-center gap-3 text-[#53A318] font-bold bg-white px-6 py-3 rounded-full shadow-sm border border-gray-100">
+                  <Loader2 size={20} className="animate-spin" />
+                  <span>Loading more deals...</span>
+                </div>
+              ) : null}
             </div>
           )}
         </>

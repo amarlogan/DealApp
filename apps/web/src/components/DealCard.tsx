@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { Heart, Star, Flame, Zap, Bell, Tag, MessageSquare, ThumbsUp, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Bookmark, Star, Flame, Zap, Bell, Tag, MessageSquare, ThumbsUp, Eye } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import DealImage from "./DealImage";
 import InteractiveStarRating from "./InteractiveStarRating";
@@ -21,21 +21,28 @@ export default function DealCard({
   deal,
   featured = false,
   layout = "carousel",
+  initialIsSaved = false,
 }: {
   deal: any;
   featured?: boolean;
   layout?: "carousel" | "grid";
+  initialIsSaved?: boolean;
 }) {
   const { user, openLogin } = useAuth();
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isSaved, setIsSaved] = useState(initialIsSaved);
   const [alertSet,  setAlertSet]   = useState(false);
 
-  const toggleFavorite = async (e: React.MouseEvent) => {
+  // Sync state with prop if it changes (e.g. on mount/rerender from parent)
+  useEffect(() => {
+    setIsSaved(initialIsSaved);
+  }, [initialIsSaved]);
+
+  const toggleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!user) { openLogin(); return; }
-    const next = !isFavorite;
-    setIsFavorite(next);
+    const next = !isSaved;
+    setIsSaved(next);
     await fetch("/api/favorites", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -151,15 +158,15 @@ export default function DealCard({
           </div>
         )}
 
-        {/* Alert + heart buttons */}
+        {/* Alert + bookmark buttons */}
         <div className="absolute top-2 right-2 z-20 flex flex-col gap-1">
           <button onClick={setAlert} aria-label="Set price alert"
             className="relative rounded-full bg-white p-1.5 shadow-md hover:scale-110 transition-transform">
             <Bell size={13} fill={alertSet ? "#f59e0b" : "transparent"} color={alertSet ? "#f59e0b" : "#9ca3af"} strokeWidth={2} />
           </button>
-          <button onClick={toggleFavorite} aria-label="Save to favorites"
+          <button onClick={toggleSave} aria-label="Save deal"
             className="relative rounded-full bg-white p-1.5 shadow-md hover:scale-110 transition-transform">
-            <Heart size={13} fill={isFavorite ? "#ef4444" : "transparent"} color={isFavorite ? "#ef4444" : "#9ca3af"} strokeWidth={2} />
+            <Bookmark size={13} fill={isSaved ? "#53A318" : "transparent"} color={isSaved ? "#53A318" : "#9ca3af"} strokeWidth={2} />
           </button>
         </div>
       </div>

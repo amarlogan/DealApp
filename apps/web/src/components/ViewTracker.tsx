@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 export default function ViewTracker({ dealId }: { dealId: string }) {
   const router = useRouter();
+  const hasFired = useRef(false);
 
   useEffect(() => {
+    if (hasFired.current) return;
+    hasFired.current = true;
+
     // Increment view count on mount
     fetch("/api/deals/view", {
       method: "POST",

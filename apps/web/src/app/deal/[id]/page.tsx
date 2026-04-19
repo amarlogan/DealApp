@@ -1,15 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { 
-  ExternalLink, Heart, ArrowLeft, Shield, Truck, Tag, 
+  ExternalLink, ArrowLeft, Shield, Truck, Tag, 
   ThumbsUp, ThumbsDown, Eye, MessageSquare, Share2, 
   Bookmark, ChevronRight, Info, AlertCircle 
 } from "lucide-react";
 import DealImage from "@/components/DealImage";
+import DealActions from "@/components/DealActions";
+import PromoCodeCopy from "@/components/PromoCodeCopy";
 import VotingSection from "@/components/VotingSection";
 import CommentSection from "@/components/CommentSection";
 import ViewTracker from "@/components/ViewTracker";
+import MarkdownContent from "@/components/MarkdownContent";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { formatDistanceToNow } from "@/lib/utils";
 import type { Metadata } from "next";
 
 type Deal = {
@@ -35,52 +39,106 @@ type Deal = {
   view_count: number;
   score: number;
   is_hot: boolean;
+  created_at: string;
+  profiles?: {
+    display_name: string;
+  };
 };
 
 async function getDeal(id: string): Promise<any | null> {
-  try {
-    const supabase = await createSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  
+  let deal = null;
+  let userRating = null;
+  let isSaved = false;
+  let distribution = [0, 0, 0, 0, 0];
 
-    // 1. Fetch main deal data
-    const { data, error } = await supabase
-      .from("deals")
-      .select("*")
-      .eq("id", id)
-      .single();
+  // 1. Try Supabase if ID looks like a UUID
+  if (isUUID) {
+    try {
+      const supabase = await createSupabaseServerClient();
+      const { data: { user } } = await supabase.auth.getUser();
 
-    if (error || !data) return null;
+      const { data, error } = await supabase
+        .from("deals")
+        .select("*, profiles!deals_user_id_fkey(display_name)")
+        .eq("id", id)
+        .single();
 
-    // 2. Fetch user rating if logged in
-    let userRating = null;
-    if (user) {
-      const { data: ud } = await supabase
-        .from("deal_ratings")
-        .select("rating")
-        .eq("deal_id", id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-      if (ud) userRating = ud.rating;
+      if (error) {
+        // Log error and fall through to JSON fallback
+      } else if (data) {
+        deal = data;
+
+        // Fetch user engagement if logged in
+        if (user) {
+          const [ratingRes, favoriteRes] = await Promise.all([
+            supabase
+              .from("deal_ratings")
+              .select("rating")
+              .eq("deal_id", id)
+              .eq("user_id", user.id)
+              .maybeSingle(),
+            supabase
+              .from("favorites")
+              .select("deal_id")
+              .eq("deal_id", id)
+              .eq("user_id", user.id)
+              .maybeSingle()
+          ]);
+          if (ratingRes.data) userRating = ratingRes.data.rating;
+          if (favoriteRes.data) isSaved = true;
+        }
+
+        // Fetch distribution
+        const { data: distData } = await supabase
+          .from("deal_ratings")
+          .select("rating")
+          .eq("deal_id", id);
+        
+        (distData || []).forEach(r => {
+          if (r.rating >= 1 && r.rating <= 5) distribution[r.rating - 1]++;
+        });
+      }
+    } catch (err) {
+      console.warn("Supabase fetch error:", err);
     }
-
-    // 3. Fetch distribution
-    const { data: distributionData } = await supabase
-      .from("deal_ratings")
-      .select("rating")
-      .eq("deal_id", id);
-    
-    const distribution = [0, 0, 0, 0, 0];
-    (distributionData || []).forEach(r => {
-      if (r.rating >= 1 && r.rating <= 5) distribution[r.rating - 1]++;
-    });
-
-    const score = (data.upvotes || 0) - (data.downvotes || 0);
-    const is_hot = score >= 10 || (data.discount_percentage >= 25) || (data.view_count >= 100) || data.is_popular;
-
-    return { ...data, userRating, distribution, score, is_hot };
-  } catch {
-    return null;
   }
+
+  // 2. Fallback to Local JSON (Mock Data)
+  if (!deal) {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000";
+      const res = await fetch(`${baseUrl}/data/deals.json`);
+      if (res.ok) {
+        const deals = await res.json();
+        const mockDeal = deals.find((d: any) => d.id === id);
+        if (mockDeal) {
+          deal = mockDeal;
+          // Mock data doesn't have live engagement, use defaults
+        }
+      }
+    } catch (err) {
+      console.error("JSON fallback failed:", err);
+    }
+  }
+
+  if (!deal) return null;
+
+  const score = (deal.upvotes || 0) - (deal.downvotes || 0);
+  const is_hot = score >= 10 || (deal.discount_percentage >= 25) || (deal.view_count >= 100) || deal.is_popular;
+
+  return { 
+    ...deal, 
+    userRating, 
+    isSaved, 
+    distribution, 
+    score, 
+    is_hot,
+    current_price: deal.current_price ?? 0,
+    original_price: deal.original_price ?? 0,
+    created_at: deal.created_at || new Date().toISOString(),
+  };
 }
 
 export async function generateMetadata({
@@ -126,187 +184,175 @@ export default async function DealDetailPage({
   const simulatedVotes = Math.floor(Math.random() * 500) + 50;
 
   return (
-    <div className="pb-24 animate-in fade-in duration-700">
-      {/* Breadcrumbs */}
-      <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 mb-8 overflow-x-auto whitespace-nowrap pb-2 scrollbar-none">
-        <Link href="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
-        <ChevronRight size={10} />
-        <Link href={`/category/${deal.category_id}`} className="hover:text-[var(--primary)] transition-colors capitalize">{deal.category_id}</Link>
-        <ChevronRight size={10} />
-        <span className="text-gray-900 truncate max-w-[200px]">{deal.title}</span>
-      </nav>
+    <div className="pb-12 min-h-screen bg-gray-50/50 animate-in fade-in duration-700">
+      <div className="max-w-6xl mx-auto px-4 pt-8 space-y-8">
+        {/* Breadcrumbs */}
+        <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 overflow-x-auto whitespace-nowrap pb-1 scrollbar-none">
+          <Link href="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
+          <ChevronRight size={10} />
+          <Link href={`/category/${deal.category_id}`} className="hover:text-[var(--primary)] transition-colors capitalize">{deal.category_id}</Link>
+          <ChevronRight size={10} />
+          <span className="text-gray-900 truncate max-w-[200px]">{deal.title}</span>
+        </nav>
 
-      {/* Main Hero Card */}
-      <div className="bg-white rounded-[40px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden mb-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12">
-          
-          {/* Left: Premium Image Section (5 cols) */}
-          <div className="lg:col-span-5 p-8 lg:p-12 bg-gray-50/50 relative">
-            <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl bg-white group cursor-zoom-in">
-              <DealImage 
-                src={deal.image_url} 
-                alt={deal.title}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                fallbackIconSize={80}
-              />
-            </div>
+        {/* Main Hero Card */}
+        <div className="bg-white rounded-[24px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-12 shrink-layout">
             
-            {/* Dynamic Overlays */}
-            {deal.discount_percentage > 0 && (
-              <div className="absolute top-16 left-16 bg-[var(--primary)] text-white font-black text-xl px-6 py-2 rounded-2xl shadow-xl -rotate-6">
-                -{deal.discount_percentage}%
+            {/* Left: Premium Image Section (5 cols) */}
+            <div className="lg:col-span-5 p-4 lg:p-6 bg-gray-50/50 relative">
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg bg-white group cursor-zoom-in">
+                <DealImage 
+                  src={deal.image_url} 
+                  alt={deal.title}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                  fallbackIconSize={60}
+                />
               </div>
-            )}
-            
-            <div className="mt-8 flex gap-3 overflow-x-auto pb-2 scrollbar-none">
-               {[1,2,3].map(i => (
-                 <div key={i} className="w-20 h-20 rounded-xl border-2 border-white shadow-sm overflow-hidden flex-shrink-0 cursor-pointer hover:border-[var(--primary)] transition-colors">
-                    <img src={deal.image_url} className="w-full h-full object-cover opacity-50 hover:opacity-100 transition-opacity" />
-                 </div>
-               ))}
+              
+              {/* Dynamic Overlays */}
+              {deal.discount_percentage > 0 && (
+                <div className="absolute top-16 left-16 bg-[var(--primary)] text-white font-black text-xl px-6 py-2 rounded-2xl shadow-xl -rotate-6">
+                  -{deal.discount_percentage}%
+                </div>
+              )}
+              
+              <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                {[1,2,3].map(i => (
+                  <div key={i} className="w-16 h-16 rounded-xl border-2 border-white shadow-sm overflow-hidden flex-shrink-0 cursor-pointer hover:border-[var(--primary)] transition-colors">
+                    <img src={deal.image_url} className="w-full h-full object-cover opacity-50 hover:opacity-100 transition-opacity" alt={`Thumbnail ${i}`}  />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Right: Content Section (7 cols) */}
-          <div className="lg:col-span-7 p-8 lg:p-16 flex flex-col">
-            <div className="flex items-center gap-3 mb-6">
-               <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">Frontpage</span>
-               <span className="text-gray-400 text-xs font-bold">Posted by <span className="text-gray-900">NexusBot</span> • 2 hours ago</span>
-            </div>
+            {/* Right: Content Section (7 cols) */}
+            <div className="lg:col-span-7 p-6 lg:p-10 flex flex-col">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">Frontpage Deal</span>
+                <span className="text-gray-400 text-[11px] font-bold">
+                  Posted by <span className="text-gray-900 font-bold">{deal.profiles?.display_name || "NexusBot"}</span> • {formatDistanceToNow(deal.created_at)}
+                </span>
+              </div>
 
-            <h1 className="text-3xl lg:text-5xl font-black text-gray-900 leading-[1.1] mb-6 tracking-tight">
-              {deal.title}
-            </h1>
+              <h1 className="text-xl lg:text-2xl font-black text-gray-900 leading-tight mb-3 tracking-tight">
+                {deal.title}
+              </h1>
 
-            {/* Stats Bar */}
-            <div className="flex items-center gap-6 mb-10 pb-6 border-b border-gray-100">
-               <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-2xl border border-gray-100">
-                  <div className="text-gray-400"><ThumbsUp size={18} /></div>
-                  <span className={`font-black ${deal.score >= 10 ? "text-red-500" : "text-gray-900"}`}>
+              {/* Stats Bar */}
+              <div className="flex items-center gap-4 mb-4 pb-3 border-b border-gray-100">
+                <div className="flex items-center gap-1.5 px-1 rounded-xl">
+                  <div className="text-gray-400 hover:text-green-600 cursor-pointer"><ThumbsUp size={14} /></div>
+                  <span className={`text-[13px] font-black ${deal.score >= 10 ? "text-red-500" : "text-gray-900"}`}>
                     {deal.score > 0 ? `+${deal.score}` : deal.score}
                   </span>
-                  <div className="text-gray-400"><ThumbsDown size={18} /></div>
-               </div>
-               <div className="flex items-center gap-2 text-gray-400 text-sm font-bold">
-                  <MessageSquare size={18} />
-                  <a href="#comments" className="text-gray-900 uppercase tracking-tighter decoration-[var(--primary)] decoration-2 underline underline-offset-4 cursor-pointer hover:text-[var(--primary)] transition-colors">
+                  <div className="text-gray-400 hover:text-red-500 cursor-pointer"><ThumbsDown size={14} /></div>
+                </div>
+                <div className="w-px h-3 bg-gray-100" />
+                <div className="flex items-center gap-1.5 text-gray-400 text-[10px] font-bold">
+                  <MessageSquare size={14} />
+                  <a href="#comments" className="text-gray-900 uppercase tracking-tighter hover:text-[var(--primary)] transition-colors">
                     {deal.comment_count || 0} Comments
                   </a>
-               </div>
-               <div className="flex items-center gap-2 text-gray-400 text-sm font-bold">
-                  <Eye size={18} />
-                  <span className="text-gray-900">{deal.view_count?.toLocaleString() || 0} Views</span>
-               </div>
-            </div>
+                </div>
+                <div className="w-px h-3 bg-gray-100" />
+                <div className="flex items-center gap-1.5 text-gray-400 text-[10px] font-bold">
+                  <Eye size={14} />
+                  <span className="text-gray-900">{deal.view_count?.toLocaleString() || 0}</span>
+                </div>
+              </div>
 
-            {/* Price & Savings */}
-            <div className="flex items-center gap-6 mb-10">
-               <div className="flex flex-col">
-                  <span className="text-6xl font-black text-gray-900 tracking-tighter">
+              {/* Price Row */}
+              <div className="flex items-center justify-between gap-6 mb-6">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-gray-900 tracking-tighter">
                     ${deal.current_price.toFixed(0)}
                   </span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl text-gray-300 line-through">${deal.original_price.toFixed(0)}</span>
-                    <span className="text-2xl font-black text-[var(--primary)]">{deal.discount_percentage}% off</span>
-                  </div>
-               </div>
-               <div className="h-16 w-px bg-gray-100" />
-               <div className="flex flex-col">
-                  <span className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Total Savings</span>
-                  <span className="text-2xl font-black text-green-600 bg-green-50 px-3 py-1 rounded-xl border border-green-100">${savings} Saved</span>
-               </div>
-            </div>
-
-
-
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <a
-                href={`/api/exit?dealId=${deal.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white py-5 px-8 rounded-3xl font-black text-xl shadow-[0_20px_40px_-12px_rgba(16,185,129,0.3)] transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
-              >
-                {mConfig.label} <ExternalLink size={24} />
-              </a>
-              <div className="flex gap-4">
-                 <button className="w-16 h-16 rounded-3xl border-2 border-gray-100 flex items-center justify-center text-gray-400 hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all">
-                    <Share2 size={24} />
-                 </button>
-                 <button className="w-16 h-16 rounded-3xl border-2 border-gray-100 flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-500 transition-all">
-                    <Bookmark size={24} />
-                 </button>
+                  <span className="text-xl text-gray-300 line-through font-bold">${deal.original_price.toFixed(0)}</span>
+                  <span className="text-sm font-black text-[var(--primary)] bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">{deal.discount_percentage}% OFF</span>
+                </div>
+                <div className="hidden sm:flex flex-col items-end">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Savings</span>
+                  <span className="text-xl font-black text-green-600">${savings}</span>
+                </div>
               </div>
-            </div>
 
-            <p className="text-[10px] text-gray-400 text-center leading-relaxed font-medium mb-8">
-              We may earn an affiliate commission when you click a link or make a purchase at {deal.merchant}. <Link href="/affiliate-disclosure" className="underline hover:text-gray-600 transition-colors">Learn more about our funding.</Link>
-            </p>
+              {/* Promo Code (Conditional) */}
+              {deal.promo_code && <PromoCodeCopy code={deal.promo_code} />}
 
-            {/* Trust Footer */}
-            <div className="mt-auto grid grid-cols-3 gap-6 pt-8 border-t border-dotted border-gray-200">
-               <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-tighter">
-                  <Shield size={14} className="text-blue-500" /> Verified Deal
-               </div>
-               <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-tighter">
-                  <Truck size={14} className="text-[var(--primary)]" /> Fast Shipping
-               </div>
-               <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-tighter">
-                  <Tag size={14} className="text-purple-500" /> {deal.merchant}
-               </div>
+              {/* CTAs & Local Voting */}
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-3">
+                  <a
+                    href={`/api/exit?dealId=${deal.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white py-3 px-6 rounded-xl font-black text-lg shadow-md transition-all flex items-center justify-center gap-2"
+                  >
+                    {mConfig.label} <ExternalLink size={18} />
+                  </a>
+                  <DealActions 
+                    dealId={deal.id} 
+                    initialIsSaved={deal.isSaved} 
+                    title={deal.title} 
+                  />
+                </div>
+                
+                {/* Integrated Voting Bar */}
+                <div className="bg-gray-50/50 rounded-xl px-4 py-2.5 border border-gray-100 flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-gray-500">Helpful?</span>
+                  <VotingSection 
+                    dealId={deal.id}
+                    initialUpvotes={deal.upvotes || 0}
+                    initialDownvotes={deal.downvotes || 0}
+                    initialUserRating={deal.userRating}
+                    viewCount={deal.view_count || 0}
+                    compact={true}
+                  />
+                </div>
+              </div>
+
+              <p className="text-[9px] text-gray-400 text-center leading-tight font-medium opacity-70 mt-4">
+                We may earn an affiliate commission when you click a link or make a purchase at {deal.merchant}. <Link href="/affiliate-disclosure" className="underline hover:text-gray-600">Funding Policy.</Link>
+              </p>
             </div>
           </div>
         </div>
-      </div>
 
-      <ViewTracker dealId={deal.id} />
+        <ViewTracker dealId={deal.id} />
 
-      <VotingSection 
-        dealId={deal.id}
-        initialUpvotes={deal.upvotes || 0}
-        initialDownvotes={deal.downvotes || 0}
-        initialUserRating={deal.userRating}
-        viewCount={deal.view_count || 0}
-      />
-
-      {/* Tabs Section */}
-      <div className="max-w-4xl mx-auto">
-         <div className="flex gap-8 border-b border-gray-100 mb-8 overflow-x-auto scrollbar-none pb-1">
-            {["Deal Details", "Product Info", "Community Notes", "About"].map((tab, i) => (
-              <button key={tab} className={`pb-4 text-sm font-black uppercase tracking-widest transition-all relative ${i === 0 ? "text-gray-900" : "text-gray-400 hover:text-gray-600"}`}>
-                {tab}
-                {i === 0 && <div className="absolute bottom-0 left-0 right-0 h-1 bg-[var(--primary)] rounded-full" />}
-              </button>
-            ))}
-         </div>
-
-         <div className="prose prose-lg max-w-none text-gray-600 font-medium leading-relaxed">
-            <p className="mb-6 font-bold text-gray-900 border-l-4 border-amber-400 pl-4 bg-amber-50 py-3 rounded-r-xl">Update: This popular deal is still available and trending in the {deal.category_id} community.</p>
+        {/* Deal Details Card */}
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-50 bg-gray-50/50">
+            <h2 className="text-[14px] font-black uppercase tracking-widest text-gray-900 border-b-2 border-gray-900 inline-block pb-1">
+              Deal Details
+            </h2>
+          </div>
+          <div className="p-8">
+            <MarkdownContent content={deal.description} />
             
-            <h3 className="text-2xl font-black text-gray-900 mb-4 flex items-center gap-2">
-               <Info className="text-blue-500" /> Store Details
-            </h3>
-            <p className="mb-6">
-              {deal.merchant} currently has the <strong>{deal.title}</strong> for <span className="text-[var(--primary)] font-black">${deal.current_price}</span>. 
-              This is a significant drop from the original price of ${deal.original_price}. 
-              {deal.promo_code && <span> Use promo code <span className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded-lg border border-purple-100 font-black">{deal.promo_code}</span> at checkout for additional savings.</span>}
-            </p>
+            {/* Fallback if no description yet */}
+            {!deal.description && (
+              <div className="prose prose-lg max-w-none text-gray-600 font-medium leading-relaxed">
+                <div className="mb-6 font-bold text-gray-900 border-l-4 border-amber-400 pl-4 bg-amber-50 py-3 rounded-r-xl">
+                  Update: This popular deal is currently available and being discussed in the community.
+                </div>
+                
+                <h3 className="text-xl font-black text-gray-900 mb-4 flex items-center gap-2">
+                  <Info className="text-blue-500" size={18} /> Store Details
+                </h3>
+                <p className="mb-6">
+                  {deal.merchant} currently has the <strong>{deal.title}</strong> for <span className="text-[var(--primary)] font-black">${deal.current_price}</span>. 
+                  This is a significant drop from the original price of ${deal.original_price}. 
+                  {deal.promo_code && <span> Use promo code <span className="bg-purple-50 text-purple-700 px-2 py-0.5 rounded-lg border border-purple-100 font-black">{deal.promo_code}</span> at checkout for additional savings.</span>}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
 
-            <h3 className="text-2xl font-black text-gray-900 mb-4 flex items-center gap-2">
-               <AlertCircle className="text-red-500" /> Product Highlights
-            </h3>
-            <ul className="list-none p-0 space-y-4">
-              {(deal.description || "").split(". ").filter(Boolean).map((line: string, i: number) => (
-                <li key={i} className="flex gap-3 items-start bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-green-500 shadow-sm flex-shrink-0 mt-0.5">✓</div>
-                  {line.trim().replace(/\.$/, "")}.
-                </li>
-              ))}
-            </ul>
-         </div>
-
-         {/* Comments Section */}
-         <CommentSection dealId={deal.id} />
+        {/* Comments Section Card */}
+        <CommentSection dealId={deal.id} />
       </div>
     </div>
   );

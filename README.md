@@ -74,6 +74,15 @@ To test admin-only features (like the Homepage Layout Manager), use:
 - **Email:** `admin@test.com`
 - **Password:** `admin123`
 - **Dashboard:** `http://localhost:3000/admin/homepage`
+
+### 🗄️ Database Migrations (2026-04-18)
+Recently added migrations to optimize Row Level Security (RLS) performance and database security:
+- `20260418000008_fix_auth_uid_policies.sql` – Rewrites `auth.uid()` calls in RLS policies to use `(SELECT auth.uid())` for better performance.
+- `20260418000009_consolidate_permissive.sql` – Consolidates duplicate permissive policies across tables.
+- `20260418000010_fix_remaining_rls.sql` – Replaces `FOR ALL` RLS statements with discrete `INSERT`/`UPDATE`/`DELETE` policies to prevent overlapping policy warnings.
+- `20260418000011_fix_function_search_paths.sql` – Hardens database security by applying a strict `search_path` to all `SECURITY DEFINER` and trigger functions.
+
+These migrations are applied automatically when the local environment is launched via `npx supabase start`.
 ---
 
 ## 📅 Content Management & Seasonal Logic

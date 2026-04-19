@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { User, Heart, Bell, Settings, LogOut, ChevronDown } from "lucide-react";
+import { User, Bookmark, Bell, Settings, LogOut, ChevronDown } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import Link from "next/link";
 
@@ -75,7 +75,7 @@ export default function UserMenu() {
             )}
             {[
               { href: "/profile",        icon: <User size={15} />,    label: "My Dashboard" },
-              { href: "/profile/saved",  icon: <Heart size={15} />,   label: "Saved Deals" },
+              { href: "/profile/saved",  icon: <Bookmark size={15} />,   label: "Saved Deals" },
               { href: "/profile/alerts", icon: <Bell size={15} />,    label: "Price Alerts" },
               { href: "/profile/settings", icon: <Settings size={15} />, label: "Interests & Settings" },
             ].map(item => (

@@ -11,6 +11,7 @@ interface VotingSectionProps {
   initialDownvotes: number;
   initialUserRating: number | null; // 1 (Down), 5 (Up)
   viewCount: number;
+  compact?: boolean;
 }
 
 export default function VotingSection({
@@ -19,6 +20,7 @@ export default function VotingSection({
   initialDownvotes,
   initialUserRating,
   viewCount,
+  compact = false,
 }: VotingSectionProps) {
   const { user, openLogin } = useAuth();
   const router = useRouter();
@@ -69,6 +71,38 @@ export default function VotingSection({
 
   const score = votes.upvotes - votes.downvotes;
   const isHot = score >= 10;
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => handleVote(5)}
+          disabled={submitting}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all active:scale-95 ${
+            votes.userRating === 5 
+              ? "bg-green-600 text-white" 
+              : "bg-white text-gray-500 hover:bg-green-50 hover:text-green-600 border border-gray-100 shadow-sm"
+          }`}
+        >
+          {submitting && votes.userRating === 5 ? <Loader2 size={14} className="animate-spin" /> : <ThumbsUp size={14} />}
+          Like
+        </button>
+        
+        <button
+          onClick={() => handleVote(1)}
+          disabled={submitting}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all active:scale-95 ${
+            votes.userRating === 1 
+              ? "bg-red-600 text-white" 
+              : "bg-white text-gray-500 hover:bg-red-50 hover:text-red-600 border border-gray-100 shadow-sm"
+          }`}
+        >
+          {submitting && votes.userRating === 1 ? <Loader2 size={14} className="animate-spin" /> : <ThumbsDown size={14} />}
+          No
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm mb-12">

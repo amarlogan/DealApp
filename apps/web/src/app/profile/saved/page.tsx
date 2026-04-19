@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { createClient } from "@/lib/supabase";
-import { Heart, ExternalLink, Trash2, ArrowLeft } from "lucide-react";
+import { Bookmark, ExternalLink, Trash2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function SavedDealsPage() {
@@ -35,7 +35,7 @@ export default function SavedDealsPage() {
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 animate-in">
-        <div className="text-6xl">❤️</div>
+        <div className="text-6xl text-[#53A318]"><Bookmark size={60} fill="currentColor" /></div>
         <h1 className="text-2xl font-black">Sign in to see your saved deals</h1>
         <button onClick={openLogin} className="bg-[#53A318] text-white px-8 py-3 rounded-full font-bold hover:bg-[#3d7c10] transition-colors">Sign In</button>
       </div>
@@ -47,7 +47,7 @@ export default function SavedDealsPage() {
       <div className="flex items-center gap-3">
         <Link href="/profile" className="text-gray-500 hover:text-gray-800 transition-colors"><ArrowLeft size={20} /></Link>
         <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-          <Heart size={22} className="text-rose-500" /> Saved Deals
+          <Bookmark size={22} className="text-[#53A318]" fill="currentColor" /> Saved Deals
           {deals.length > 0 && <span className="text-base font-bold text-gray-400">({deals.length})</span>}
         </h1>
       </div>
@@ -64,7 +64,7 @@ export default function SavedDealsPage() {
         <div className="section-box text-center py-16">
           <div className="text-5xl mb-4">🔖</div>
           <h2 className="text-xl font-black text-gray-900 mb-2">No saved deals yet</h2>
-          <p className="text-gray-500 mb-5">Click the ❤️ on any deal card to save it here.</p>
+          <p className="text-gray-500 mb-5">Click the bookmark icon on any deal card to save it here.</p>
           <Link href="/" className="bg-[#53A318] text-white px-8 py-3 rounded-full font-bold hover:bg-[#3d7c10] transition-colors inline-block">
             Browse Deals
           </Link>

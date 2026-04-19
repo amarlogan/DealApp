@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Save, AlertTriangle, Percent, Trash2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Save, AlertTriangle, Percent, Trash2, Info } from "lucide-react";
+import MarkdownContent from "@/components/MarkdownContent";
 
 interface DealFormProps {
   initialData?: any;
@@ -23,10 +24,13 @@ interface DealFormData {
   is_popular: boolean;
   status: string;
   badge: string;
+  promo_code: string;
+  description: string;
   season_ids: string[];
 }
 
 export default function DealForm({ initialData, categories, seasons, onSave, isLoading }: DealFormProps) {
+  const [previewMode, setPreviewMode] = useState(false);
   const [formData, setFormData] = useState<DealFormData>({
     title: "",
     merchant: "",
@@ -39,6 +43,8 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
     is_popular: false,
     status: "active",
     badge: "",
+    promo_code: "",
+    description: "",
     season_ids: [] as string[],
     ...(initialData || {})
   });
@@ -211,7 +217,70 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
           />
         </div>
 
-        <div className="flex items-center gap-6 p-4 bg-gray-50 rounded-2xl md:col-span-2">
+        {/* Description / Markdown */}
+        <div className="md:col-span-2 space-y-3">
+          <div className="flex items-center justify-between pl-1">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest">Deal Description (Markdown)</label>
+            <div className="flex bg-gray-100 p-1 rounded-xl gap-1">
+               <button 
+                 type="button"
+                 onClick={() => setPreviewMode(false)}
+                 className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${!previewMode ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+               >
+                 Write
+               </button>
+               <button 
+                 type="button"
+                 onClick={() => setPreviewMode(true)}
+                 className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${previewMode ? "bg-white text-gray-900 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+               >
+                 Preview
+               </button>
+            </div>
+          </div>
+          
+          {previewMode ? (
+            <div className="w-full bg-white border-2 border-gray-50 rounded-2xl p-6 min-h-[200px] shadow-inner overflow-y-auto max-h-[400px]">
+               <MarkdownContent content={formData.description || "_No content to preview yet._"} />
+            </div>
+          ) : (
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Introduce the deal, add product details and store info using Markdown (**bold**, - bullets, [links]()...)"
+              rows={8}
+              className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-semibold placeholder:text-gray-300 focus:ring-2 focus:ring-[#53A318] transition-all resize-none min-h-[200px]"
+            />
+          )}
+          <p className="text-[10px] text-gray-400 font-medium pl-1 flex items-center gap-1">
+            <Info size={10} className="text-blue-500" /> Use standard Markdown for professional formatting.
+          </p>
+        </div>
+
+        {/* Marketing Tags */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Promo Code</label>
+          <input
+            type="text"
+            value={formData.promo_code}
+            onChange={(e) => setFormData({ ...formData, promo_code: e.target.value })}
+            placeholder="e.g. SAVE20"
+            className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-black text-purple-600 placeholder:text-gray-300 focus:ring-2 focus:ring-[#53A318] transition-all"
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Custom Badge</label>
+          <input
+            type="text"
+            value={formData.badge}
+            onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
+            placeholder="e.g. EDITOR'S CHOICE"
+            className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-semibold placeholder:text-gray-300 focus:ring-2 focus:ring-[#53A318] transition-all"
+          />
+        </div>
+
+        <div className="flex items-center gap-6 p-4 bg-gray-100/50 rounded-2xl md:col-span-2">
            <label className="flex items-center gap-2 cursor-pointer select-none">
              <input
               type="checkbox"
@@ -219,7 +288,7 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
               onChange={(e) => setFormData({ ...formData, is_popular: e.target.checked })}
               className="w-4 h-4 text-[#53A318] rounded focus:ring-[#53A318]"
              />
-             <span className="text-sm font-bold text-gray-700">Mark as Popular</span>
+             <span className="text-sm font-black text-gray-700">Mark as Popular</span>
            </label>
 
            <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -229,7 +298,7 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
               onChange={(e) => setFormData({ ...formData, status: e.target.checked ? 'active' : 'expired' })}
               className="w-4 h-4 text-[#53A318] rounded focus:ring-[#53A318]"
              />
-             <span className="text-sm font-bold text-gray-700">Is Active</span>
+             <span className="text-sm font-black text-gray-700">Is Active Deal</span>
            </label>
         </div>
       </div>
