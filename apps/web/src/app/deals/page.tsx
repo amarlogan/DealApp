@@ -1,62 +1,40 @@
-import DealListing from "@/components/DealListing";
-import { createSupabaseAdmin } from "@/lib/supabase-server";
+import { createSupabaseAdmin, createSupabaseServerClient } from "@/lib/supabase-server";
+import DealsClient from "./DealsClient";
 
-export const metadata = {
-  title: "All Deals | HuntMyDeal",
-  description: "Browse all active deals across every category on HuntMyDeal.",
-};
+export const revalidate = 60; // Refresh more frequently than home
 
-export const dynamic = "force-dynamic";
-
-export default async function DealsPage(props: { searchParams: Promise<any> }) {
-  const searchParams = await props.searchParams;
-  const seasonId = searchParams.season;
-  const isFeatured = searchParams.featured === "true";
+export default async function DealsPage() {
+  const supabaseAdmin = createSupabaseAdmin();
+  const supabaseServer = await createSupabaseServerClient();
   
-  const supabase = createSupabaseAdmin();
-  let title = "🔥 All Active Deals";
-  let seasonData = null;
-
-  // 1. If seasonal, fetch season metadata for the title
-  if (seasonId) {
-    const { data } = await supabase
-      .from("seasons")
-      .select("name")
-      .eq("id", seasonId)
-      .single();
-    if (data) {
-      seasonData = data;
-      title = `${data.name} Deals`;
+  // 1. Fetch User Session (to sync favorite status)
+  const { data: { user } } = await supabaseServer.auth.getUser();
+  let favoriteIds: string[] = [];
+  
+  if (user) {
+    const { data: favData } = await supabaseServer
+      .from("favorites")
+      .select("deal_id")
+      .eq("user_id", user.id);
+    
+    if (favData) {
+      favoriteIds = favData.map(f => f.deal_id);
     }
-  } else if (isFeatured) {
-    title = "Top Deals Today 🔥";
   }
 
-  // 2. Fetch initial deals with same filters as the client will use
-  let query = supabase
+  // 2. Fetch Initial Deals (Page 1)
+  const { data: dealsData } = await supabaseAdmin
     .from("deals")
-    .select(seasonId ? "*, deal_seasons!inner(season_id)" : "*")
+    .select("*")
     .eq("status", "active")
     .eq("in_stock", true)
     .limit(24)
-    .order("discount_percentage", { ascending: false });
-
-  if (seasonId) {
-    query = query.eq("deal_seasons.season_id", seasonId);
-  }
-  if (isFeatured) {
-    query = query.or("is_popular.eq.true,discount_percentage.gte.30");
-  }
-
-  const { data: dealsData } = await (query as any);
-  const deals = dealsData || [];
+    .order("created_at", { ascending: false });
 
   return (
-    <DealListing 
-      title={title} 
-      initialDeals={deals} 
-      seasonId={seasonId}
-      isFeatured={isFeatured}
+    <DealsClient 
+      initialDeals={dealsData || []} 
+      favoriteIds={favoriteIds}
     />
   );
 }

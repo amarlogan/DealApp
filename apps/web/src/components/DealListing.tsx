@@ -40,7 +40,7 @@ export default function DealListing({
 }) {
   const [deals, setDeals] = useState<Deal[]>(initialDeals);
   const [page, setPage] = useState(1);
-  const [sort, setSort] = useState<SortOption>("discount_percentage");
+  const [sort, setSort] = useState<SortOption>("newest");
   // Only loading if no initial deals were provided
   const [loading, setLoading] = useState(initialDeals.length === 0);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -54,7 +54,7 @@ export default function DealListing({
       setDeals(initialDeals);
       setHasMore(initialDeals.length === 24);
       setPage(1);
-      setSort("discount_percentage");
+      setSort("newest");
     }
   }, [initialDeals]);
 

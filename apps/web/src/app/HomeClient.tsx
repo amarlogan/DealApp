@@ -191,58 +191,9 @@ export default function HomeClient({
   favoriteIds?: string[];
 }) {
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
-  const [pagedDeals, setPagedDeals] = useState<Deal[]>([]);
-  const [page, setPage] = useState(2); // Initial deals are "page 1"
-  const [loading, setLoading] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [autoScrollCount, setAutoScrollCount] = useState(0);
-  const loaderRef = useRef<HTMLDivElement>(null);
   const favSet = new Set(favoriteIds);
   const deals = initialDeals;
   const { hh, mm, ss }   = useCountdown(4, 23, 17);
-
-  // Initialize paged deals with a slice of initial deals to avoid empty state
-  useEffect(() => {
-    if (pagedDeals.length === 0 && initialDeals.length > 0) {
-      setPagedDeals(initialDeals.slice(0, 20));
-    }
-  }, [initialDeals]);
-
-  // Intersection Observer for Infinite Scroll
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading && autoScrollCount < 5) {
-          loadMoreDeals();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (loaderRef.current) observer.observe(loaderRef.current);
-    return () => observer.disconnect();
-  }, [hasMore, loading, autoScrollCount]);
-
-  const loadMoreDeals = async () => {
-    if (loading || !hasMore) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/deals?page=${page}&limit=24`);
-      const data = await res.json();
-      if (data.deals && data.deals.length > 0) {
-        setPagedDeals(prev => [...prev, ...data.deals]);
-        setPage(p => p + 1);
-        setAutoScrollCount(c => c + 1);
-        if (data.deals.length < 24) setHasMore(false);
-      } else {
-        setHasMore(false);
-      }
-    } catch (error) {
-      console.error("Error loading deals:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Auto-advance hero carousel
   useEffect(() => {
@@ -433,47 +384,25 @@ export default function HomeClient({
         })}
       </div>
 
-      {/* ── Explore All Deals Feed ── */}
-      <div id="explore-deals" className="pt-16 border-t border-gray-100">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="p-2 bg-[var(--primary-light)] rounded-xl text-[var(--primary)]">
-            <TrendingUp size={24} />
+      {/* ── View All Deals CTA ── */}
+      <div className="py-16 text-center">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="inline-flex items-center gap-2 bg-[var(--primary-light)] text-[var(--primary)] text-xs font-black px-4 py-1.5 rounded-full mb-6">
+            <Zap size={14} fill="currentColor" /> Over 10,000+ Deals Available
           </div>
-          <div>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight">Explore More Deals</h2>
-            <p className="text-gray-500 text-sm font-medium">Endless discounts, updated every hour</p>
-          </div>
+          <h2 className="text-3xl lg:text-4xl font-black text-gray-900 mb-6 tracking-tight">
+            Craving more discounts?
+          </h2>
+          <p className="text-gray-500 font-medium mb-10 leading-relaxed">
+            We've only shown you a tiny slice of today's best offers. Explore our full live feed with thousands of deals updated every minute.
+          </p>
+          <Link 
+            href="/deals" 
+            className="inline-flex items-center gap-3 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-12 py-5 rounded-3xl font-black shadow-2xl transition-all hover:scale-110 active:scale-95"
+          >
+            Explore All Deals <ChevronRight size={20} strokeWidth={3} />
+          </Link>
         </div>
-        
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {pagedDeals.map(deal => (
-            <DealCard 
-              key={deal.id} 
-              deal={deal} 
-              initialIsSaved={favSet.has(deal.id)} 
-            />
-          ))}
-        </div>
-
-        {hasMore && (
-          <div className="py-12 flex flex-col items-center gap-4">
-            {autoScrollCount >= 5 ? (
-              <button 
-                onClick={loadMoreDeals}
-                disabled={loading}
-                className="bg-white border-2 border-[var(--primary)] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white px-10 py-4 rounded-full font-black shadow-xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-              >
-                {loading ? "Loading more..." : "Load More Deals"}
-              </button>
-            ) : (
-              <div ref={loaderRef} className="flex gap-2">
-                <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-bounce" />
-                <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-bounce [animation-delay:0.2s]" />
-                <div className="w-2 h-2 rounded-full bg-[var(--primary)] animate-bounce [animation-delay:0.4s]" />
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {/* ── Coming Soon Section (Automated) ── */}

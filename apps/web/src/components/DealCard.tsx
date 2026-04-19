@@ -75,10 +75,10 @@ export default function DealCard({
   const fallback = gradients[parseInt(deal.id?.replace(/\D/g, "") || "0") % gradients.length];
 
   const cardW = layout === "grid" 
-    ? "w-full h-full" 
+    ? "w-full flex-grow flex-shrink" 
     : featured ? "w-[340px] sm:w-[370px] flex-shrink-0" : "w-[260px] sm:w-[285px] flex-shrink-0";
   const imgH  = featured ? "h-52" : "h-44";
-  const bodyH = featured && layout !== "grid" ? "min-h-[192px]" : "min-h-[172px]";
+  const bodyH = layout === "grid" ? "flex-1" : (featured ? "min-h-[192px]" : "min-h-[172px]");
   const initialScore = deal.score !== undefined ? deal.score : ((deal.upvotes || 0) - (deal.downvotes || 0));
   const [localScore, setLocalScore] = useState(initialScore);
   const [hasLiked, setHasLiked] = useState(false);
@@ -102,7 +102,7 @@ export default function DealCard({
   return (
     <div
       id={`deal-card-${deal.id}`}
-      className={`deal-card relative group bg-white rounded-2xl overflow-hidden cursor-pointer flex flex-col ${cardW}`}
+      className={`deal-card relative group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col border border-gray-100/50 ${cardW}`}
     >
       {/* Primary Deal Link (Stretched) */}
       <Link 

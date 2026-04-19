@@ -49,7 +49,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
     .eq("in_stock", true)
     .eq("category_id", categoryId)
     .limit(24)
-    .order("discount_percentage", { ascending: false });
+    .order("created_at", { ascending: false });
 
   const deals = data || [];
 
