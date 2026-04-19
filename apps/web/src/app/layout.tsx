@@ -73,45 +73,52 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               {children}
             </ResponsiveShell>
 
-            {/* ── Footer (Desktop Only) ── */}
-            <footer className="bg-gray-900 text-gray-300 hidden md:block">
-              <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
-                {/* Brand */}
-                <div className="col-span-2 md:col-span-1">
-                  <div className="flex items-center gap-2.5 mb-6 group cursor-pointer">
-                    <div className="w-9 h-9 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                      <Percent size={20} className="text-white" strokeWidth={3} />
+            {/* ── Minimalist Footer ── */}
+            <footer className="bg-white border-t border-gray-100 hidden md:block pt-16 pb-8">
+              <div className="max-w-7xl mx-auto px-6">
+                <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16">
+                  {/* Brand & Mission */}
+                  <div className="max-w-sm">
+                    <div className="flex items-center gap-2.5 mb-6 group cursor-pointer">
+                      <div className="w-9 h-9 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <Percent size={20} className="text-white" strokeWidth={3} />
+                      </div>
+                      <span className="text-2xl font-black text-gray-900 tracking-tighter">HuntMy<span className="text-[var(--primary)]">Deal</span></span>
                     </div>
-                    <span className="text-2xl font-black text-white tracking-tighter">HuntMy<span className="text-[var(--primary)]">Deal</span></span>
-                  </div>
-                  <p className="text-sm text-gray-400 leading-relaxed mb-6">
-                    Our mission is to help you find the absolute best deals from 200+ top brands. To keep our service free and accessible, we partner with retailers and may earn a small commission when you purchase through our links.
-                  </p>
-                  <div className="bg-gray-800/50 rounded-2xl p-4 border border-gray-700/50">
-                    <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-widest mb-2 flex items-center gap-2">
-                       <Shield size={12} className="text-[var(--primary)]" /> Affiliate Disclosure
-                    </h4>
-                    <p className="text-[11px] text-gray-400 leading-snug">
-                      HuntMyDeal is a participant in affiliate advertising programs. When you click on links and buy items, we may receive a commission at no extra cost to you. These partnerships do not influence our editorial selections.
+                    <p className="text-gray-500 text-sm leading-relaxed mb-6 font-medium">
+                      Helping you find verified deals from 200+ top brands. We focus on quality and real savings, updated every hour.
                     </p>
+                  </div>
+
+                  {/* Minimal Links */}
+                  <div className="grid grid-cols-2 gap-x-16 gap-y-8">
+                    <div>
+                      <h4 className="text-xs font-black uppercase text-gray-900 tracking-widest mb-4">Platform</h4>
+                      <ul className="space-y-3">
+                        <li><Link href="/deals" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">All Deals</Link></li>
+                        <li><Link href="#" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Categories</Link></li>
+                        <li><Link href="#" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Partner Brands</Link></li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-black uppercase text-gray-900 tracking-widest mb-4">Legal</h4>
+                      <ul className="space-y-3">
+                        <li><Link href="#" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Privacy Policy</Link></li>
+                        <li><Link href="#" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Terms of Service</Link></li>
+                        <li><Link href="#" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Affiliate Link disclosure</Link></li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
 
-                {Object.entries(FOOTER_LINKS).map(([heading, links]) => (
-                  <div key={heading}>
-                    <h3 className="text-white font-bold text-sm mb-4 uppercase tracking-wide">{heading}</h3>
-                    <ul className="space-y-2.5">
-                      {links.map(link => (
-                        <li key={link}><Link href="#" className="text-sm text-gray-400 hover:text-white transition-colors">{link}</Link></li>
-                      ))}
-                    </ul>
+                <div className="pt-8 border-t border-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
+                  <span className="text-xs text-gray-400 font-medium">© 2026 HuntMyDeal Inc. All rights reserved.</span>
+                  
+                  {/* Subtle Disclosure Bar */}
+                  <div className="flex items-center gap-2 text-[10px] text-gray-300 font-medium max-w-xl text-center md:text-right">
+                    <Shield size={12} className="shrink-0" />
+                    <span>HuntMyDeal is a participant in affiliate programs. We may earn a commission when you click on links and buy items.</span>
                   </div>
-                ))}
-              </div>
-
-              <div className="border-t border-gray-800">
-                <div className="max-w-7xl mx-auto px-6 py-4 text-center text-xs text-gray-500">
-                  <span>© 2026 HuntMyDeal Inc. All rights reserved.</span>
                 </div>
               </div>
             </footer>
