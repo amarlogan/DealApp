@@ -80,7 +80,16 @@ info "Pulling latest code from git..."
 git pull origin master
 success "Code updated."
 
-# ── Step 4: Rebuild and restart Docker ────────────────────────────────────────
+# ── Step 4: Ensure Docker network exists ──────────────────────────────────────
+if ! docker network inspect webproxy &>/dev/null; then
+  info "Creating 'webproxy' Docker network..."
+  docker network create webproxy
+  success "'webproxy' network created."
+else
+  info "'webproxy' network already exists."
+fi
+
+# ── Step 5: Rebuild and restart Docker ────────────────────────────────────────
 info "Building and restarting Docker container..."
 
 docker compose --env-file .env.production up --build -d
