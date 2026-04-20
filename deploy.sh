@@ -92,7 +92,7 @@ fi
 # ── Step 5: Rebuild and restart Docker ────────────────────────────────────────
 info "Building and restarting Docker container..."
 
-docker compose --env-file .env.production up --build -d
+docker compose --env-file .env.production up --build --force-recreate -d
 
 success "Container rebuilt and running."
 
