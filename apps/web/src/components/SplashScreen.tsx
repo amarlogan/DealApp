@@ -22,14 +22,14 @@ export default function SplashScreen() {
         <div className="absolute inset-0 bg-white/20 rounded-3xl blur-2xl animate-pulse scale-150" />
         
         {/* Logo Container */}
-        <div className="relative w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center shadow-2xl animate-in zoom-in-50 duration-700">
-          <Percent size={48} className="text-[var(--primary)] animate-in spin-in-12 duration-1000" strokeWidth={3} />
+        <div className="relative w-48 h-48 flex items-center justify-center animate-in zoom-in-50 duration-700">
+          <img src="/logo.svg" alt="HuntMyDeal" className="w-full h-full animate-in fade-in duration-1000" />
         </div>
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-2">
         <h1 className="text-3xl font-black tracking-tight text-white animate-in slide-in-from-bottom-4 duration-700 delay-300">
-          Deal<span className="text-white/80">Nexus</span>
+          HuntMy<span className="text-white/80">Deal</span>
         </h1>
         <p className="text-white/60 text-sm font-semibold tracking-widest uppercase animate-in fade-in duration-1000 delay-500">
           Best Deals • Daily

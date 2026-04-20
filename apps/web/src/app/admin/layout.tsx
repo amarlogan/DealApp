@@ -1,4 +1,4 @@
-import { LayoutDashboard, Tag, ShoppingBag, Palette, Home, LogOut, ChevronRight, Users, Compass } from "lucide-react";
+import { LayoutDashboard, Tag, ShoppingBag, Palette, Home, LogOut, ChevronRight, Users, Compass, MessageSquare } from "lucide-react";
 import Link from "next/link";
 
 const ADMIN_NAV = [
@@ -8,6 +8,7 @@ const ADMIN_NAV = [
   { label: "Top Navigation", href: "/admin/navigation", icon: Compass },
   { label: "Seasonal & Themes", href: "/admin/seasons", icon: Palette },
   { label: "Homepage Layout", href: "/admin/homepage", icon: Home },
+  { label: "Inquiries", href: "/admin/contact", icon: MessageSquare },
   { label: "User Management", href: "/admin/users", icon: Users },
 ];
 
@@ -22,7 +23,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span className="text-white font-black text-xs">A</span>
             </div>
             <span className="text-lg font-black tracking-tight text-gray-900 group-hover:text-[#53A318] transition-colors">
-              Admin<span className="text-gray-400">Nexus</span>
+              Admin<span className="text-gray-400">Hunt</span>
             </span>
           </Link>
         </div>

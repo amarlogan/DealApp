@@ -10,7 +10,7 @@ export default async function CategoriesPage() {
   const { data: navItems } = await supabase
     .from("navigation_items")
     .select(`
-      id, label_override, category_id,
+      id, label_override, category_id, href,
       categories ( id, label, emoji, description )
     `)
     .eq("is_visible", true)
@@ -33,7 +33,7 @@ export default async function CategoriesPage() {
         {categories.map((item: any) => {
           const cat = item.categories;
           const label = item.label_override || cat?.label || "Unknown";
-          const href = item.category_id ? `/category/${item.category_id}` : "#";
+          const href = item.href || (item.category_id ? `/category/${item.category_id}` : "#");
 
           return (
             <a 

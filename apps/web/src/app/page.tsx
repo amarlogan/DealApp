@@ -83,9 +83,20 @@ export default async function Home() {
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
 
+  // 6. Fetch Hub Deals (for Mobile View)
+  // Replicates the logic from /deals page for the initial load
+  const { data: hubDealsData } = await supabaseAdmin
+    .from("deals")
+    .select("*, deal_seasons(season_id)")
+    .eq("status", "active")
+    .eq("in_stock", true)
+    .order("created_at", { ascending: false })
+    .limit(24);
+
   return (
     <HomeClient 
       initialDeals={dealsData || []} 
+      hubDeals={hubDealsData || []} // For mobile hub
       landingSections={(sectionsData as any) || []}
       topCategories={categoriesData || []}
       upcomingCategories={upcomingData || []}

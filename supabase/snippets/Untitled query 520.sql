@@ -1,3 +1,1 @@
-select * from navigation_items
-
-select * from deals
+SELECT query FROM pg_stat_statements WHERE query LIKE '%contact_submissions%';

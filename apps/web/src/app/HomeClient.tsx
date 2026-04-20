@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import DealCard from "@/components/DealCard";
-import { ChevronRight, ChevronLeft, Sparkles, Zap, TrendingUp, Percent } from "lucide-react";
+import { ChevronRight, ChevronLeft, Sparkles, Zap, TrendingUp, Percent, Filter, ChevronDown } from "lucide-react";
 import { HERO_COPY } from "@/config/categories";
 import Link from "next/link";
+import useDevice from "@/lib/useDevice";
 
 type Deal = {
   id: string;
@@ -177,6 +178,7 @@ function CategoryCarousel({ categories }: { categories: UICategory[] }) {
 
 export default function HomeClient({ 
   initialDeals,
+  hubDeals = [],
   landingSections,
   topCategories,
   upcomingCategories,
@@ -184,12 +186,25 @@ export default function HomeClient({
   favoriteIds = []
 }: { 
   initialDeals: Deal[];
+  hubDeals?: Deal[];
   landingSections: LandingSection[];
   topCategories: UICategory[];
   upcomingCategories: UICategory[];
   heroSlides?: HeroSlide[];
   favoriteIds?: string[];
 }) {
+  const device = useDevice();
+  const isMobile = device === "mobile";
+
+  // -- HUB LOGIC (For Mobile) --
+  const [pagedDeals, setPagedDeals] = useState<Deal[]>(hubDeals);
+  const [page, setPage] = useState(2);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(hubDeals.length >= 24);
+  const [autoScrollCount, setAutoScrollCount] = useState(0);
+  const [sort, setSort] = useState("newest");
+  const loaderRef = useRef<HTMLDivElement>(null);
+
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
   const favSet = new Set(favoriteIds);
   const deals = initialDeals;
@@ -223,231 +238,326 @@ export default function HomeClient({
   const featured   = deals.filter(d => d.is_popular || (d.discount_percentage ?? 0) >= 30);
   const flashDeals = deals.filter(d => (d.discount_percentage ?? 0) >= 38);
 
-  return (
-    <div className="animate-in w-full space-y-6 pb-10">
+  // -- HUB DATA FETCHING --
+  useEffect(() => {
+    if (!isMobile) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && autoScrollCount < 5) {
+          loadMoreDeals();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    if (loaderRef.current) observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loading, autoScrollCount, isMobile]);
 
-      {/* ── Hero Carousel ── */}
-      <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl min-h-[320px] lg:min-h-[360px] bg-black group/hero">
-        {heroSlides.length > 0 ? (
-          heroSlides.map((slide, idx) => {
-            const isActive = idx === currentHeroIndex;
-            return (
-              <div 
-                key={slide.id}
-                className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-                  isActive ? "opacity-100 scale-100 z-10" : "opacity-0 scale-105 pointer-events-none -z-10 invisible"
-                }`}
-              >
-                {/* Background with Gradient Overlay */}
+  const loadMoreDeals = async () => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/deals?page=${page}&limit=24&sort=${sort}`);
+      const data = await res.json();
+      if (data.deals && data.deals.length > 0) {
+        setPagedDeals(prev => [...prev, ...data.deals]);
+        setPage(p => p + 1);
+        setAutoScrollCount(c => c + 1);
+        if (data.deals.length < 24) setHasMore(false);
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error("Error loading deals:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 1. DESKTOP VIEW
+  if (!isMobile && device !== "loading") {
+    return (
+      <div className="animate-in w-full space-y-6 pb-10">
+        <div className="relative w-full rounded-[2.5rem] overflow-hidden shadow-2xl min-h-[320px] lg:min-h-[360px] bg-black group/hero">
+          {heroSlides.length > 0 ? (
+            heroSlides.map((slide, idx) => {
+              const isActive = idx === currentHeroIndex;
+              return (
                 <div 
-                  className={`absolute inset-0 bg-cover bg-center bg-gray-900 transition-transform duration-[8000ms] ease-linear ${
-                     isActive ? "scale-110" : "scale-100"
+                  key={slide.id}
+                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                    isActive ? "opacity-100 scale-100 z-10" : "opacity-0 scale-105 pointer-events-none -z-10 invisible"
                   }`}
-                  style={{ backgroundImage: `url('${slide.image_url}')` }} 
-                />
-                <div className={`absolute inset-0 bg-gradient-to-r ${slide.bg_gradient || 'from-black/80 via-black/40 to-transparent'}`} />
+                >
+                  <div 
+                    className={`absolute inset-0 bg-cover bg-center bg-gray-900 transition-transform duration-[8000ms] ease-linear ${
+                       isActive ? "scale-110" : "scale-100"
+                    }`}
+                    style={{ backgroundImage: `url('${slide.image_url}')` }} 
+                  />
+                  <div className={`absolute inset-0 bg-gradient-to-r ${slide.bg_gradient || 'from-black/80 via-black/40 to-transparent'}`} />
 
-                {isActive && (
-                  <div key={`content-${idx}`} className="relative z-20 h-full p-8 lg:px-16 lg:py-10 flex flex-col justify-center">
-                    <div className="max-w-2xl">
-                      {slide.tag_text && (
-                        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white text-[10px] lg:text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full mb-4 border border-white/20 animate-in slide-in-from-bottom-4 duration-500">
-                          <Sparkles size={12} className="text-[#90e050]" /> {slide.tag_text}
+                  {isActive && (
+                    <div key={`content-${idx}`} className="relative z-20 h-full p-8 lg:px-16 lg:py-10 flex flex-col justify-center">
+                      <div className="max-w-2xl">
+                        {slide.tag_text && (
+                          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white text-[10px] lg:text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full mb-4 border border-white/20 animate-in slide-in-from-bottom-4 duration-500">
+                            <Sparkles size={12} className="text-[#90e050]" /> {slide.tag_text}
+                          </div>
+                        )}
+                        <h1 className="text-4xl lg:text-6xl font-black tracking-tight leading-[1] text-white mb-3 drop-shadow-2xl animate-in slide-in-from-bottom-8 duration-700">
+                          {slide.title}<br />
+                          {slide.accent_text && <span className="text-[#90e050] inline-block mt-2">{slide.accent_text}</span>}
+                        </h1>
+                        <p className="text-base lg:text-lg text-white/80 font-medium mb-8 max-w-xl leading-relaxed animate-in slide-in-from-bottom-10 duration-[900ms]">
+                          {slide.subtitle}
+                        </p>
+                        <div className="flex flex-wrap gap-4 animate-in slide-in-from-bottom-12 duration-1000">
+                          <Link href={slide.button_link || "/deals"} className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-8 py-3.5 rounded-full font-black shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3 text-sm lg:text-base">
+                            <Percent size={18} /> {slide.button_text || "Browse Deals"}
+                          </Link>
                         </div>
-                      )}
-                      <h1 className="text-4xl lg:text-6xl font-black tracking-tight leading-[1] text-white mb-3 drop-shadow-2xl animate-in slide-in-from-bottom-8 duration-700">
-                        {slide.title}<br />
-                        {slide.accent_text && <span className="text-[#90e050] inline-block mt-2">{slide.accent_text}</span>}
-                      </h1>
-                      <p className="text-base lg:text-lg text-white/80 font-medium mb-8 max-w-xl leading-relaxed animate-in slide-in-from-bottom-10 duration-[900ms]">
-                        {slide.subtitle}
-                      </p>
-                      <div className="flex flex-wrap gap-4 animate-in slide-in-from-bottom-12 duration-1000">
-                        <Link href={slide.button_link || "/deals"} className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-8 py-3.5 rounded-full font-black shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3 text-sm lg:text-base">
-                          <Percent size={18} /> {slide.button_text || "Browse Deals"}
-                        </Link>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          })
-        ) : (
-          /* Fallback static hero if no slides */
-          <div className="relative z-10 p-8 lg:p-14 flex flex-col lg:flex-row items-center justify-between gap-8 h-full bg-gradient-to-r from-[#1a3a0f] via-[#2a5c18] to-[#4a8a2a]">
-             <div className="text-white max-w-xl">
-               <h1 className="text-4xl font-black mb-4">Finding the Best Deals...</h1>
-               <p className="text-white/70">Please wait while we fetch the latest offers for you.</p>
-             </div>
-          </div>
-        )}
-
-        {/* Carousel Indicators */}
-        {heroSlides.length > 1 && (
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-                {heroSlides.map((_, idx) => (
-                    <button 
-                        key={idx}
-                        onClick={() => setCurrentHeroIndex(idx)}
-                        className={`h-1.5 transition-all rounded-full ${
-                            idx === currentHeroIndex ? "w-8 bg-[#90e050]" : "w-1.5 bg-white/30 hover:bg-white/50"
-                        }`}
-                    />
-                ))}
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div className="relative z-10 p-8 lg:p-14 flex flex-col lg:flex-row items-center justify-between gap-8 h-full bg-gradient-to-r from-[#1a3a0f] via-[#2a5c18] to-[#4a8a2a]">
+               <div className="text-white max-w-xl">
+                 <h1 className="text-4xl font-black mb-4">Finding the Best Deals...</h1>
+                 <p className="text-white/70">Please wait while we fetch the latest offers for you.</p>
+               </div>
             </div>
-        )}
+          )}
 
-        {/* Navigation Arrows (Desktop) */}
-        {heroSlides.length > 1 && (
-            <>
-                <button 
-                    onClick={() => setCurrentHeroIndex(prev => (prev - 1 + heroSlides.length) % heroSlides.length)}
-                    className="absolute left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-2xl bg-black/20 hover:bg-black/40 backdrop-blur-md border border-white/10 text-white flex items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-all duration-300 -translate-x-4 group-hover/hero:translate-x-0"
-                >
-                    <ChevronLeft size={24} />
-                </button>
-                <button 
-                    onClick={() => setCurrentHeroIndex(prev => (prev + 1) % heroSlides.length)}
-                    className="absolute right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-2xl bg-black/20 hover:bg-black/40 backdrop-blur-md border border-white/10 text-white flex items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-all duration-300 translate-x-4 group-hover/hero:translate-x-0"
-                >
-                    <ChevronRight size={24} />
-                </button>
-            </>
-        )}
-
-        {/* Floating Flash Deals Timer */}
-        {flashDeals.length > 0 && (
-            <div className="absolute bottom-6 right-6 z-20 hidden md:flex flex-wrap items-center gap-4 bg-black/40 backdrop-blur-xl border border-white/20 rounded-2xl px-5 py-3 shadow-2xl animate-in fade-in zoom-in duration-500">
-              <div className="flex flex-col">
-                <div className="text-white font-black text-sm tracking-tight flex items-center gap-1.5"><Zap size={14} className="text-[#ff6128] fill-[#ff6128]" /> Flash Deals</div>
-                <div className="text-white/70 text-[10px] uppercase tracking-wider font-bold">Ends soon</div>
+          {heroSlides.length > 1 && (
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                  {heroSlides.map((_, idx) => (
+                      <button 
+                          key={idx}
+                          onClick={() => setCurrentHeroIndex(idx)}
+                          className={`h-1.5 transition-all rounded-full ${
+                              idx === currentHeroIndex ? "w-8 bg-[#90e050]" : "w-1.5 bg-white/30 hover:bg-white/50"
+                          }`}
+                      />
+                  ))}
               </div>
-              <div className="flex items-center gap-1">
-                {[{val:hh,label:"h"},{val:mm,label:"m"},{val:ss,label:"s"}].map((u,i) => (
-                  <div key={i} className="flex items-center gap-0.5">
-                    <div className="bg-white/10 border border-white/5 text-white font-black text-sm px-2 py-1 rounded min-w-[32px] text-center">{u.val}</div>
-                    <span className="text-white/50 text-[10px] font-bold mr-1">{u.label}</span>
-                  </div>
-                ))}
+          )}
+
+          {heroSlides.length > 1 && (
+              <>
+                  <button onClick={() => setCurrentHeroIndex(prev => (prev - 1 + heroSlides.length) % heroSlides.length)}
+                      className="absolute left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-2xl bg-black/20 hover:bg-black/40 backdrop-blur-md border border-white/10 text-white flex items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-all duration-300 -translate-x-4 group-hover/hero:translate-x-0">
+                      <ChevronLeft size={24} />
+                  </button>
+                  <button onClick={() => setCurrentHeroIndex(prev => (prev + 1) % heroSlides.length)}
+                      className="absolute right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-2xl bg-black/20 hover:bg-black/40 backdrop-blur-md border border-white/10 text-white flex items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-all duration-300 translate-x-4 group-hover/hero:translate-x-0">
+                      <ChevronRight size={24} />
+                  </button>
+              </>
+          )}
+
+          {flashDeals.length > 0 && (
+              <div className="absolute bottom-6 right-6 z-20 hidden md:flex flex-wrap items-center gap-4 bg-black/40 backdrop-blur-xl border border-white/20 rounded-2xl px-5 py-3 shadow-2xl animate-in fade-in zoom-in duration-500">
+                <div className="flex flex-col">
+                  <div className="text-white font-black text-sm tracking-tight flex items-center gap-1.5"><Zap size={14} className="text-[#ff6128] fill-[#ff6128]" /> Flash Deals</div>
+                  <div className="text-white/70 text-[10px] uppercase tracking-wider font-bold">Ends soon</div>
+                </div>
+                <div className="flex items-center gap-1">
+                  {[{val:hh,label:"h"},{val:mm,label:"m"},{val:ss,label:"s"}].map((u,i) => (
+                    <div key={i} className="flex items-center gap-0.5">
+                      <div className="bg-white/10 border border-white/5 text-white font-black text-sm px-2 py-1 rounded min-w-[32px] text-center">{u.val}</div>
+                      <span className="text-white/50 text-[10px] font-bold mr-1">{u.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+          )}
+        </div>
+
+        <div id="deals" className="space-y-0">
+          <Carousel 
+            title="Top Deals Today 🔥" 
+            icon={<TrendingUp size={22}/>} 
+            deals={featured} 
+            favoriteIds={favSet} 
+            featured 
+            seeAllHref="/deals?featured=true" 
+          />
+          
+          {landingSections.map(sec => {
+            const cat = Array.isArray(sec.categories) ? sec.categories[0] : sec.categories;
+            const season = Array.isArray(sec.seasons) ? sec.seasons[0] : sec.seasons;
+            if (cat && sec.category_id) {
+              return (
+                <Carousel
+                  key={sec.id}
+                  title={sec.title || cat.label}
+                  icon={<span className="text-xl">{cat.emoji}</span>}
+                  deals={byCat(sec.category_id, sec.max_items)}
+                  favoriteIds={favSet}
+                  seeAllHref={`/category/${sec.category_id}`}
+                />
+              );
+            }
+            if (season && sec.season_id) {
+              return (
+                <Carousel
+                  key={sec.id}
+                  title={sec.title || season.name}
+                  icon={<Sparkles size={22} className="text-amber-500" />}
+                  deals={bySeason(sec.season_id, sec.max_items)}
+                  favoriteIds={favSet}
+                  seasonTheme
+                  seeAllHref={`/deals?season=${sec.season_id}`}
+                />
+              );
+            }
+            return null;
+          })}
+        </div>
+
+        <div className="py-16 text-center">
+          <div className="max-w-2xl mx-auto px-4">
+            <div className="inline-flex items-center gap-2 bg-[var(--primary-light)] text-[var(--primary)] text-xs font-black px-4 py-1.5 rounded-full mb-6">
+              <Zap size={14} fill="currentColor" /> Over 10,000+ Deals Available
+            </div>
+            <h2 className="text-3xl lg:text-4xl font-black text-gray-900 mb-6 tracking-tight">
+              Craving more discounts?
+            </h2>
+            <p className="text-gray-500 font-medium mb-10 leading-relaxed">
+              We've only shown you a tiny slice of today's best offers. Explore our full live feed with thousands of deals updated every minute.
+            </p>
+            <Link href="/deals" className="inline-flex items-center gap-3 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-12 py-5 rounded-3xl font-black shadow-2xl transition-all hover:scale-110 active:scale-95">
+              Explore All Deals <ChevronRight size={20} strokeWidth={3} />
+            </Link>
+          </div>
+        </div>
+
+        {(() => {
+          const refilling = topCategories.filter(c => c.deal_count === 0);
+          const combined = [...refilling, ...upcomingCategories];
+          if (combined.length === 0) return null;
+          return (
+            <div className="section-box text-center py-10 bg-gray-50/50 border-dashed border-2 border-gray-200">
+              <h2 className="text-xl font-black text-gray-900 mb-2">More Categories Coming Soon 🚀</h2>
+              <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">We're constantly hunting for more discounts! These categories are being refilled or prepared for launch.</p>
+              <div className="flex justify-center flex-wrap gap-3">
+                {combined.map(cat => {
+                  const isRefilling = (cat as any).deal_count === 0 && (cat as any).is_active;
+                  return (
+                    <div key={cat.id} className="flex items-center gap-2 bg-white border border-gray-100 shadow-sm text-gray-600 px-4 py-2.5 rounded-full text-sm font-bold transition-all hover:scale-105">
+                      {cat.emoji} {cat.label} 
+                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${
+                        isRefilling ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700 font-black"
+                      }`}>
+                        {isRefilling ? "Refilling" : "Soon"}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-        )}
-      </div>
+          );
+        })()}
 
-
-
-      {/* ── Deal Carousels — Database Driven ── */}
-      <div id="deals" className="space-y-0">
-        <Carousel 
-          title="Top Deals Today 🔥" 
-          icon={<TrendingUp size={22}/>} 
-          deals={featured} 
-          favoriteIds={favSet} 
-          featured 
-          seeAllHref="/deals?featured=true" 
-        />
-        
-        {landingSections.map(sec => {
-          // Handle potential array or object from Supabase join
-          const cat = Array.isArray(sec.categories) ? sec.categories[0] : sec.categories;
-          const season = Array.isArray(sec.seasons) ? sec.seasons[0] : sec.seasons;
-
-          if (cat && sec.category_id) {
-            return (
-              <Carousel
-                key={sec.id}
-                title={sec.title || cat.label}
-                icon={<span className="text-xl">{cat.emoji}</span>}
-                deals={byCat(sec.category_id, sec.max_items)}
-                favoriteIds={favSet}
-                seeAllHref={`/category/${sec.category_id}`}
-              />
-            );
-          }
-
-          if (season && sec.season_id) {
-            return (
-              <Carousel
-                key={sec.id}
-                title={sec.title || season.name}
-                icon={<Sparkles size={22} className="text-amber-500" />}
-                deals={bySeason(sec.season_id, sec.max_items)}
-                favoriteIds={favSet}
-                seasonTheme
-                seeAllHref={`/deals?season=${sec.season_id}`}
-              />
-            );
-          }
-
-          return null;
-        })}
-      </div>
-
-      {/* ── View All Deals CTA ── */}
-      <div className="py-16 text-center">
-        <div className="max-w-2xl mx-auto px-4">
-          <div className="inline-flex items-center gap-2 bg-[var(--primary-light)] text-[var(--primary)] text-xs font-black px-4 py-1.5 rounded-full mb-6">
-            <Zap size={14} fill="currentColor" /> Over 10,000+ Deals Available
+        <div className="bg-gradient-to-br from-[var(--primary)] to-[#2d7a00] rounded-3xl p-8 lg:p-12 text-white text-center shadow-xl">
+          <div className="text-4xl mb-3">📬</div>
+          <h2 className="text-3xl font-black mb-2">Never Miss a Deal</h2>
+          <p className="text-white/80 mb-6 font-medium">Get top discounts delivered daily. 200,000+ savvy shoppers already subscribed.</p>
+          <div className="flex gap-2 max-w-md mx-auto">
+            <input type="email" id="newsletter-email" placeholder="your@email.com"
+              className="flex-1 px-5 py-3 rounded-full text-gray-900 font-medium outline-none placeholder-gray-400" />
+            <button className="bg-[#ff6128] hover:bg-[#d44e1c] text-white px-6 py-3 rounded-full font-bold shadow-lg transition-all hover:scale-105 whitespace-nowrap">
+              Get Deals
+            </button>
           </div>
-          <h2 className="text-3xl lg:text-4xl font-black text-gray-900 mb-6 tracking-tight">
-            Craving more discounts?
-          </h2>
-          <p className="text-gray-500 font-medium mb-10 leading-relaxed">
-            We've only shown you a tiny slice of today's best offers. Explore our full live feed with thousands of deals updated every minute.
-          </p>
-          <Link 
-            href="/deals" 
-            className="inline-flex items-center gap-3 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-12 py-5 rounded-3xl font-black shadow-2xl transition-all hover:scale-110 active:scale-95"
-          >
-            Explore All Deals <ChevronRight size={20} strokeWidth={3} />
-          </Link>
         </div>
       </div>
+    );
+  }
 
-      {/* ── Coming Soon Section (Automated) ── */}
-      {(() => {
-        const refilling = topCategories.filter(c => c.deal_count === 0);
-        const combined = [...refilling, ...upcomingCategories];
-        
-        if (combined.length === 0) return null;
-        
-        return (
-          <div className="section-box text-center py-10 bg-gray-50/50 border-dashed border-2 border-gray-200">
-            <h2 className="text-xl font-black text-gray-900 mb-2">More Categories Coming Soon 🚀</h2>
-            <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">We're constantly hunting for more discounts! These categories are being refilled or prepared for launch.</p>
-            <div className="flex justify-center flex-wrap gap-3">
-              {combined.map(cat => {
-                const isRefilling = (cat as any).deal_count === 0 && (cat as any).is_active;
-                return (
-                  <div key={cat.id} className="flex items-center gap-2 bg-white border border-gray-100 shadow-sm text-gray-600 px-4 py-2.5 rounded-full text-sm font-bold transition-all hover:scale-105">
-                    {cat.emoji} {cat.label} 
-                    <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${
-                      isRefilling ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700 font-black"
-                    }`}>
-                      {isRefilling ? "Refilling" : "Soon"}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+  // 2. MOBILE VIEW (Hub Experience)
+  return (
+    <div className="animate-in fade-in w-full pt-1 pb-16">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-orange-50 rounded-lg text-orange-500">
+            <TrendingUp size={20} className="fill-orange-500/20" />
           </div>
-        );
-      })()}
-
-      {/* ── Newsletter ── */}
-      <div className="bg-gradient-to-br from-[var(--primary)] to-[#2d7a00] rounded-3xl p-8 lg:p-12 text-white text-center shadow-xl">
-        <div className="text-4xl mb-3">📬</div>
-        <h2 className="text-3xl font-black mb-2">Never Miss a Deal</h2>
-        <p className="text-white/80 mb-6 font-medium">Get top discounts delivered daily. 200,000+ savvy shoppers already subscribed.</p>
-        <div className="flex gap-2 max-w-md mx-auto">
-          <input type="email" id="newsletter-email" placeholder="your@email.com"
-            className="flex-1 px-5 py-3 rounded-full text-gray-900 font-medium outline-none placeholder-gray-400" />
-          <button className="bg-[#ff6128] hover:bg-[#d44e1c] text-white px-6 py-3 rounded-full font-bold shadow-lg transition-all hover:scale-105 whitespace-nowrap">
-            Get Deals
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+            Latest Deals
+          </h1>
+        </div>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none">
+            <select 
+              value={sort}
+              onChange={(e) => {
+                setSort(e.target.value);
+                setPage(1);
+                setPagedDeals([]);
+                setHasMore(true);
+                setAutoScrollCount(0);
+              }}
+              className="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-xs font-bold rounded-full pl-4 pr-10 py-2.5 outline-none hover:border-[var(--primary)] transition-colors cursor-pointer shadow-sm"
+            >
+              <option value="newest">Newest First</option>
+              <option value="discount_percentage">Highest Discount</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+          <button className="bg-white border border-gray-100 text-gray-400 p-2.5 rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all shadow-sm">
+            <Filter size={18} />
           </button>
         </div>
       </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 auto-rows-fr">
+        {pagedDeals.map((deal, idx) => (
+          <div key={`${deal.id}-${idx}`} className="h-full">
+            <DealCard deal={deal} layout="grid" initialIsSaved={favSet.has(deal.id)} />
+          </div>
+        ))}
+      </div>
+
+      {hasMore && (
+        <div className="py-20 flex flex-col items-center gap-6">
+          {autoScrollCount >= 5 ? (
+            <button onClick={loadMoreDeals} disabled={loading} className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white w-full py-5 rounded-3xl font-black shadow-2xl transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3">
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                  Fetching More...
+                </>
+              ) : (
+                <>Load More Deals</>
+              )}
+            </button>
+          ) : (
+            <div ref={loaderRef} className="flex flex-col items-center gap-3">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 rounded-full bg-[var(--primary)] animate-bounce" />
+                <div className="w-3 h-3 rounded-full bg-[var(--primary)] animate-bounce [animation-delay:0.2s]" />
+                <div className="w-3 h-3 rounded-full bg-[var(--primary)] animate-bounce [animation-delay:0.4s]" />
+              </div>
+              <span className="text-gray-400 text-[10px] font-black uppercase tracking-widest">Scanning Catalog</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!hasMore && pagedDeals.length > 0 && (
+        <div className="py-12 text-center">
+          <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-500 px-6 py-3 rounded-full font-bold text-xs">
+            🎉 You've seen all the latest deals!
+          </div>
+        </div>
+      )}
     </div>
   );
 }

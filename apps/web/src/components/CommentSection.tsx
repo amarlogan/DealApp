@@ -210,7 +210,7 @@ function CommentItem({ comment, allComments, onReply }: {
         {/* Content */}
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-black text-gray-900">{comment.profiles?.display_name || "NexusUser"}</span>
+            <span className="font-black text-gray-900">{comment.profiles?.display_name || "DealHunter"}</span>
             <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">• {date}</span>
           </div>
           <div className="bg-gray-50 group-hover/comment:bg-gray-100/50 transition-colors p-4 rounded-2xl rounded-tl-none inline-block max-w-full">

@@ -65,13 +65,16 @@ export default function ResponsiveShell({
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] rounded-xl flex items-center justify-center shadow-[0_4px_12px_-2px_rgba(83,163,24,0.3)] group-hover:shadow-[0_8px_20px_-4px_rgba(83,163,24,0.4)] transition-all group-hover:scale-105">
-              <Percent size={22} className="text-white" strokeWidth={3} />
+          <Link href="/" className="flex items-center gap-3 flex-shrink-0 group">
+            <div className="w-16 h-16 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+              <img src="/logo.svg" alt="HuntMyDeal" className="w-full h-full" />
             </div>
-            <span className="text-2xl font-black tracking-tighter text-gray-900 leading-none">
-              HuntMy<span className="text-[var(--primary)]">Deal</span>
-            </span>
+            <div className="flex flex-col">
+              <span className="text-2xl font-black tracking-tighter text-gray-900 leading-none">
+                HuntMy<span className="text-[var(--primary)]">Deal</span>
+              </span>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1 ml-0.5">Premium Savings</span>
+            </div>
           </Link>
 
           {/* Search */}

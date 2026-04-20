@@ -16,7 +16,7 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
   title: "HuntMyDeal | Best Deals on Electronics, Fashion, Home & More",
-  description: "Find the best discounts from 200+ brands on electronics, fashion, shoes, home & kitchen, sports, and more. Deals updated daily.",
+  description: "Find the best deals from top brands, updated every hour. HuntMyDeal helps you save more with hand-picked discounts.",
   keywords: "deals, discounts, electronics deals, fashion sale, shoes deals, home deals, promo code, coupon",
 };
 
@@ -79,14 +79,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16">
                   {/* Brand & Mission */}
                   <div className="max-w-sm">
-                    <div className="flex items-center gap-2.5 mb-6 group cursor-pointer">
-                      <div className="w-9 h-9 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                        <Percent size={20} className="text-white" strokeWidth={3} />
+                    <div className="flex items-center gap-3 mb-6 group cursor-pointer">
+                      <div className="w-12 h-12 flex items-center justify-center transition-transform group-hover:scale-110">
+                        <img src="/logo.svg" alt="HuntMyDeal" className="w-full h-full" />
                       </div>
                       <span className="text-2xl font-black text-gray-900 tracking-tighter">HuntMy<span className="text-[var(--primary)]">Deal</span></span>
                     </div>
                     <p className="text-gray-500 text-sm leading-relaxed mb-6 font-medium">
-                      Helping you find verified deals from 200+ top brands. We focus on quality and real savings, updated every hour.
+                      Helping you find verified deals from top brands. We focus on quality and real savings, updated every hour.
                     </p>
                   </div>
 
@@ -97,15 +97,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                       <ul className="space-y-3">
                         <li><Link href="/deals" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">All Deals</Link></li>
                         <li><Link href="#" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Categories</Link></li>
+                        <li><Link href="/contact" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Contact Us</Link></li>
                         <li><Link href="#" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Partner Brands</Link></li>
                       </ul>
                     </div>
                     <div>
                       <h4 className="text-xs font-black uppercase text-gray-900 tracking-widest mb-4">Legal</h4>
                       <ul className="space-y-3">
-                        <li><Link href="#" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Privacy Policy</Link></li>
-                        <li><Link href="#" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Terms of Service</Link></li>
-                        <li><Link href="#" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Affiliate Link disclosure</Link></li>
+                        <li><Link href="/privacy-policy" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Privacy Policy</Link></li>
+                        <li><Link href="/terms-of-service" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Terms of Service</Link></li>
+                        <li><Link href="/affiliate-disclosure" className="text-sm text-gray-500 hover:text-[var(--primary)] font-semibold transition-colors">Affiliate Disclosure</Link></li>
                       </ul>
                     </div>
                   </div>

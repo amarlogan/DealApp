@@ -1,14 +1,10 @@
 import DealListing from "@/components/DealListing";
 import { createSupabaseAdmin } from "@/lib/supabase-server";
 
-export async function generateMetadata({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const { q } = await searchParams;
-  const title = q ? `Search results for "${q}"` : "Search Deals";
-  return {
-    title: `${title} | HuntMyDeal`,
-    description: "Search for the best deals by brand, category, or product.",
-  };
-}
+export const metadata = {
+  title: "Search Deals | HuntMyDeal",
+  description: "Search for the best deals on electronics, fashion, and more on HuntMyDeal.",
+};
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams;

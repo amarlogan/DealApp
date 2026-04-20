@@ -1,0 +1,20 @@
+{
+    email support@huntmydeal.com
+}
+
+# HuntMyDeal Production
+huntmydeal.com, www.huntmydeal.com {
+    reverse_proxy huntmydeal-web:3000
+    
+    header {
+        Strict-Transport-Security "max-age=31536000;"
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer-when-downgrade
+    }
+}
+
+# Example of another app on the same VPC
+# otherapp.com {
+#     reverse_proxy otherapp-container:3000
+# }

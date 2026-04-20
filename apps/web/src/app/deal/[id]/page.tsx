@@ -148,11 +148,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const deal = await getDeal(id);
-  if (!deal) return { title: "Deal Not Found | HuntMyDeal" };
-  const savings = deal.original_price - deal.current_price;
+  const title = deal?.title || "Deal";
   return {
-    title: `${deal.title} — $${deal.current_price.toFixed(2)} (Save $${savings.toFixed(2)}) | HuntMyDeal`,
-    description: `${deal.description?.slice(0, 155)}…`,
+    title: `${title} | HuntMyDeal`,
+    description: `Save big on ${title}. Found on HuntMyDeal.`,
   };
 }
 
@@ -231,7 +230,7 @@ export default async function DealDetailPage({
               <div className="flex items-center gap-3 mb-4">
                 <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">Frontpage Deal</span>
                 <span className="text-gray-400 text-[11px] font-bold">
-                  Posted by <span className="text-gray-900 font-bold">{deal.profiles?.display_name || "NexusBot"}</span> • {formatDistanceToNow(deal.created_at)}
+                  Posted by <span className="text-gray-900 font-bold">{deal.profiles?.display_name || "DealBot"}</span> • {formatDistanceToNow(deal.created_at)}
                 </span>
               </div>
 

@@ -11,23 +11,28 @@ This is a high-density project map designed for AI token efficiency. Read this b
 
 ## 🗺️ Route Map (Current)
 - `/admin/categories` -> `apps/web/src/app/admin/categories/page.tsx`
+- `/admin/contact` -> `apps/web/src/app/admin/contact/page.tsx`
 - `/admin/deals` -> `apps/web/src/app/admin/deals/page.tsx`
 - `/admin/homepage` -> `apps/web/src/app/admin/homepage/page.tsx`
 - `/admin/navigation` -> `apps/web/src/app/admin/navigation/page.tsx`
 - `/admin` -> `apps/web/src/app/admin/page.tsx`
 - `/admin/seasons` -> `apps/web/src/app/admin/seasons/page.tsx`
 - `/admin/users` -> `apps/web/src/app/admin/users/page.tsx`
+- `/affiliate-disclosure` -> `apps/web/src/app/affiliate-disclosure/page.tsx`
 - `/categories` -> `apps/web/src/app/categories/page.tsx`
 - `/category/[categoryId]` -> `apps/web/src/app/category/[categoryId]/page.tsx`
+- `/contact` -> `apps/web/src/app/contact/page.tsx`
 - `/deal/[id]` -> `apps/web/src/app/deal/[id]/page.tsx`
 - `/deals` -> `apps/web/src/app/deals/page.tsx`
 - `/login` -> `apps/web/src/app/login/page.tsx`
 - `/` -> `apps/web/src/app/page.tsx`
+- `/privacy-policy` -> `apps/web/src/app/privacy-policy/page.tsx`
 - `/profile/alerts` -> `apps/web/src/app/profile/alerts/page.tsx`
 - `/profile` -> `apps/web/src/app/profile/page.tsx`
 - `/profile/saved` -> `apps/web/src/app/profile/saved/page.tsx`
 - `/profile/settings` -> `apps/web/src/app/profile/settings/page.tsx`
 - `/search` -> `apps/web/src/app/search/page.tsx`
+- `/terms-of-service` -> `apps/web/src/app/terms-of-service/page.tsx`
 ## 🗄️ Database Schema Snapshots
 - **deals**: id, title, current_price, original_price, external_id, category_id, status.
 - **categories**: id, label, emoji, sort_order.

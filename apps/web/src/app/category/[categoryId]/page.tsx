@@ -24,9 +24,10 @@ export async function generateMetadata({ params }: { params: Promise<{ categoryI
     return { title: "Category Not Found | HuntMyDeal" };
   }
   
+  const title = cat.label;
   return {
-    title: `${cat.label} Deals | HuntMyDeal`,
-    description: `Find the best active deals for ${cat.label}.`,
+    title: `${title} | HuntMyDeal`,
+    description: `Browse the best deals for ${title}. Save big with verified discounts on HuntMyDeal.`,
   };
 }
 

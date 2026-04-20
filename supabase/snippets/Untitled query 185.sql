@@ -1,1 +1,1 @@
-UPDATE public.deals SET promo_code = 'WATCH2026' WHERE title LIKE '%Apple Watch%';
+UPDATE public.deals SET promo_code = 'WATCH2026' WHERE title LIKE '%Apple Watch%';SELECT * FROM _supabase_migrations.migrations;
