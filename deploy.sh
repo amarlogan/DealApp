@@ -77,7 +77,7 @@ success ".env.production written (permissions: 600)."
 
 # ── Step 3: Pull latest code ───────────────────────────────────────────────────
 info "Pulling latest code from git..."
-git pull origin main
+git pull origin master
 success "Code updated."
 
 # ── Step 4: Rebuild and restart Docker ────────────────────────────────────────
