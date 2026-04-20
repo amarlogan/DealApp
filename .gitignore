@@ -11,9 +11,11 @@ out/
 dist/
 build/
 
-# Environment variables
+# Environment variables — never commit real secrets
 .env
 .env.local
+.env.production
+.env.development
 .env.development.local
 .env.test.local
 .env.production.local
