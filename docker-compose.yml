@@ -11,6 +11,11 @@ services:
         - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
     container_name: huntmydeal-web
     restart: always
+    extra_hosts:
+      # Allows the container to reach self-hosted Supabase on this same VPS.
+      # Without this, srv1603188.hstgr.cloud resolves to 127.0.1.1 (loopback)
+      # inside Docker, which causes ECONNREFUSED.
+      - "srv1603188.hstgr.cloud:host-gateway"
     environment:
       # Runtime env: available to the Node.js server process
       - NODE_ENV=production
