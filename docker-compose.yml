@@ -26,7 +26,10 @@ services:
       - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
     networks:
       - webproxy
+      - supabase_default
 
 networks:
   webproxy:
+    external: true
+  supabase_default:
     external: true
