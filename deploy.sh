@@ -8,13 +8,21 @@
 #   See docs/vps-setup.md for instructions on storing secrets on the VPS.
 #
 # What this script does:
-#   1. Validates that all required secrets are set as VPS env vars
-#   2. Writes .env.production from those env vars (never stored in git)
-#   3. Pulls the latest code from git
-#   4. Rebuilds and restarts the Docker container
+#   1. Auto-sources /etc/profile.d/huntmydeal.sh if present
+#   2. Validates that all required secrets are set as VPS env vars
+#   3. Writes .env.production from those env vars (never stored in git)
+#   4. Pulls the latest code from git
+#   5. Rebuilds and restarts the Docker container
 # ==============================================================================
 
 set -euo pipefail
+
+# ── Auto-source secrets file if present ───────────────────────────────────────
+SECRETS_FILE="/etc/profile.d/huntmydeal.sh"
+if [[ -f "$SECRETS_FILE" ]]; then
+  # shellcheck source=/dev/null
+  source "$SECRETS_FILE"
+fi
 
 # ── Colours ───────────────────────────────────────────────────────────────────
 RED='\033[0;31m'
