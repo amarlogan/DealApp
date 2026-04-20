@@ -90,7 +90,7 @@ export default function DealCard({
     if (hasLiked) return;
 
     setHasLiked(true);
-    setLocalScore(prev => prev + 1);
+    setLocalScore((prev: number) => prev + 1);
 
     await fetch("/api/rate", {
       method: "POST",
