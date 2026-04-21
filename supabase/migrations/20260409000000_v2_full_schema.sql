@@ -283,7 +283,7 @@ VALUES
    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
    549.99, 749.99, 'home-kitchen', null, 4.6, 9874, false, true, 'amz-B09KXSDM3X'),
 
-  ('KitchenAid Artisan 5-Qt Stand Mixer — Empire Red',
+  ('KitchenAid Artisan 5-Qt Stand Mixer - Empire Red',
    '10 speeds. Tilt-head design. 59-point planetary mixing action.',
    'KitchenAid', 'https://walmart.com/ip/KitchenAid-Artisan/34593843',
    'https://walmart.com/ip/KitchenAid-Artisan/34593843?affiliates_ad=REPLACE_TAG',
@@ -297,7 +297,7 @@ VALUES
    'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80',
    89.97, 150.00, 'shoes', 'Sale', 4.7, 8912, true, true, 'nike-CT1670-001'),
 
-  ('Nike Air Force 1 ''07 Women''s Shoes — Triple White',
+  ('Nike Air Force 1 ''07 Women''s Shoes - Triple White',
    'Iconic AF1. Leather upper. Padded collar. Full-length Air-Sole unit.',
    'Nike', 'https://nike.com/t/air-force-1-07/DD8959-100',
    'https://nike.com/t/air-force-1-07/DD8959-100?cp=REPLACE_TAG',
@@ -311,7 +311,7 @@ VALUES
    'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80',
    99.99, 190.00, 'shoes', 'Hot Deal', 4.8, 12044, true, true, 'adidas-GX5462'),
 
-  ('H&M Slim-Fit Stretch Suit — Navy Blue',
+  ('H&M Slim-Fit Stretch Suit - Navy Blue',
    'Smart slim-fit jacket. Notch lapels. Matching flat-front trousers. Stretch fabric.',
    'H&M', 'https://hm.com/product/1234567890',
    'https://hm.com/product/1234567890?cp=REPLACE_TAG',
@@ -325,7 +325,7 @@ VALUES
    'https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&q=80',
    39.99, 69.50, 'fashion', null, 4.6, 41320, true, true, 'amz-B00IEJ9D3W'),
 
-  ('Zara Oversized Linen Blazer — Ecru',
+  ('Zara Oversized Linen Blazer - Ecru',
    'Relaxed oversized cut in lightweight linen blend. Button front. Fully lined.',
    'Zara', 'https://zara.com/us/linen-blazer-p09163741.html',
    'https://zara.com/us/linen-blazer-p09163741.html?cp=REPLACE_TAG',

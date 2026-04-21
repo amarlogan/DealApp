@@ -37,9 +37,9 @@ export const getCategoryEmoji = (id: string): string =>
 
 // Homepage hero copy
 export const HERO_COPY = {
-  tag:      'Top Deals — Updated Daily',
+  tag:      'Top Deals - Updated Daily',
   headline: 'Shop Smarter.',
   accent:   'Save More.',
-  sub:      'The best deals across electronics, fashion, home, shoes, and more — from 200+ top brands.',
+  sub:      'The best deals across electronics, fashion, home, shoes, and more - from 200+ top brands.',
   cta:      'Browse Deals',
 };

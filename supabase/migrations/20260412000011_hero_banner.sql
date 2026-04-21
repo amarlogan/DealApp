@@ -39,9 +39,9 @@ INSERT INTO public.hero_slides (title, subtitle, accent_text, tag_text, image_ur
 VALUES 
 (
     'Shop Smarter.', 
-    'The best deals across electronics, fashion, home, shoes, and more — from 200+ top brands.', 
+    'The best deals across electronics, fashion, home, shoes, and more - from 200+ top brands.', 
     'Save More.', 
-    'Top Deals — Updated Daily', 
+    'Top Deals - Updated Daily', 
     'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600&q=60',
     10
 ),
