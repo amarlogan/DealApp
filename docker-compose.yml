@@ -20,6 +20,7 @@ services:
       # Runtime env: available to the Node.js server process
       - NODE_ENV=production
       - PORT=3000
+      - HOSTNAME=0.0.0.0
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}

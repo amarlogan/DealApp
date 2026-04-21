@@ -38,6 +38,34 @@ npm run dev
 
 ---
 
+## ☁️ Deploying to Production (VPC)
+
+To deploy the HuntMyDeal frontend to your Hostinger VPS after the database schema has been migrated securely to your self-hosted Supabase instance:
+
+1. **SSH into your VPS:**
+   Navigate to the project directory containing your `docker-compose.yml`.
+
+2. **Configure Environment Variables:**
+   Create or edit the `.env` file on your server to point to your live Supabase instance:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://srv1603188.hstgr.cloud
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_production_service_role_key
+   ```
+   *Note: Never commit `.env` to git. You must create this file manually on the server.*
+
+3. **Rebuild the Container:**
+   Next.js bakes `NEXT_PUBLIC_` environment variables into the static frontend files during the build process. To apply the new `.env` variables, you must completely rebuild the container on the VPS:
+   ```bash
+   git pull origin master
+   docker compose up -d --build
+   ```
+
+4. **Verify Deployment:**
+   Open your live domain (e.g., `http://huntmydeal.com`) and verify that the application successfully fetches data from the production database.
+
+---
+
 ## 📂 Project Architecture & Component Map
 
 The repository is a monorepo setup containing the backend, frontend, and our future scraping architecture.

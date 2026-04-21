@@ -114,6 +114,14 @@ else
   warn "Caddy not detected. You may need to reload your proxy manually."
 fi
 
+# ── Step 7: Internal Connectivity Check ──────────────────────────────────────
+info "Verifying internal connectivity (Caddy -> Web)..."
+if docker exec supabase-caddy wget -qO- --spider http://huntmydeal-web:3000 &>/dev/null; then
+  success "Internal connection successful."
+else
+  warn "Internal connection failed. Check your Docker networking and HOSTNAME settings."
+fi
+
 success "Container rebuilt and running."
 
 # ── Done ──────────────────────────────────────────────────────────────────────
