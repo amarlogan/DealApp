@@ -22,10 +22,19 @@ HUNTMYDEAL_SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsI..."
 HUNTMYDEAL_BASE_URL="https://huntmydeal.com"
 ```
 
-Save and apply:
+source /etc/environment
+```
+
+---
+
+## 2. Open Firewall Ports (Crucial for SSL)
+
+Caddy needs ports 80 and 443 open to verify your domain and serve HTTPS. Run these on your VPS:
 
 ```bash
-source /etc/environment
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw reload
 ```
 
 > **Note:** Variables in `/etc/environment` use the `KEY="VALUE"` format (no `export`).
@@ -70,11 +79,23 @@ The script will:
 Every time you push new code from your desktop, SSH into the VPS and run:
 
 ```bash
-cd /opt/DealDash
-./deploy.sh
-```
-
 That's it. No manual file copying needed.
+
+---
+
+## 5. Caddy Setup (One-time)
+
+If you haven't set up your reverse proxy yet, ensure Caddy is running and pointed to the `Caddyfile` in this repo.
+
+**If using Docker Caddy:**
+Ensure your Caddy container is on the `webproxy` network and mounts the `Caddyfile` from this repository.
+
+**If using Host Caddy:**
+Symlink the config:
+```bash
+sudo ln -sf /opt/DealDash/Caddyfile /etc/caddy/Caddyfile
+sudo systemctl reload caddy
+```
 
 ---
 

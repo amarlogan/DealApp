@@ -1,8 +1,17 @@
 {
-    email support@huntmydeal.com
+    email admin@srv1603188.hstgr.cloud
 }
 
-# HuntMyDeal Production
+# Supabase API Gateway
+srv1603188.hstgr.cloud {
+    reverse_proxy kong:8000
+    log {
+        output stdout
+        format console
+    }
+}
+
+# HuntMyDeal Production App
 huntmydeal.com, www.huntmydeal.com {
     reverse_proxy huntmydeal-web:3000
     
@@ -12,9 +21,9 @@ huntmydeal.com, www.huntmydeal.com {
         X-Frame-Options DENY
         Referrer-Policy no-referrer-when-downgrade
     }
-}
 
-# Example of another app on the same VPC
-# otherapp.com {
-#     reverse_proxy otherapp-container:3000
-# }
+    log {
+        output stdout
+        format console
+    }
+}

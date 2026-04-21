@@ -92,7 +92,27 @@ fi
 # ── Step 5: Rebuild and restart Docker ────────────────────────────────────────
 info "Building and restarting Docker container..."
 
-docker compose --env-file .env.production up --build --force-recreate -d
+# ── Step 6: Reload Caddy (Reverse Proxy) ──────────────────────────────────────
+info "Reloading Caddy configuration..."
+
+# Check if Caddy is running in Docker (Supabase setup uses supabase-caddy)
+if docker ps --format '{{.Names}}' | grep -q "^supabase-caddy$"; then
+  info "Detected 'supabase-caddy' container. Reloading..."
+  docker exec supabase-caddy caddy reload --config /etc/caddy/Caddyfile || warn "Caddy reload failed. Check your config."
+  success "Caddy (Docker) reloaded."
+# fallback for standard 'caddy' name
+elif docker ps --format '{{.Names}}' | grep -q "^caddy$"; then
+  info "Detected 'caddy' container. Reloading..."
+  docker exec caddy caddy reload --config /etc/caddy/Caddyfile || warn "Caddy reload failed."
+  success "Caddy (Docker) reloaded."
+# fallback for host-installed caddy
+elif systemctl is-active --quiet caddy; then
+  info "Detected Caddy systemd service. Reloading..."
+  sudo systemctl reload caddy || warn "Caddy reload failed."
+  success "Caddy (Systemd) reloaded."
+else
+  warn "Caddy not detected. You may need to reload your proxy manually."
+fi
 
 success "Container rebuilt and running."
 
@@ -101,4 +121,9 @@ echo ""
 echo -e "${GREEN}✔ Deploy complete!${NC}"
 echo -e "  App:      ${HUNTMYDEAL_BASE_URL}"
 echo -e "  Supabase: ${HUNTMYDEAL_SUPABASE_URL}"
+echo ""
+echo -e "${YELLOW}NOTE:${NC} If you get a 'Connection Closed' error, ensure:"
+echo -e "  1. Ports 80 & 443 are open: ${CYAN}sudo ufw allow 80/tcp && sudo ufw allow 443/tcp${NC}"
+echo -e "  2. DNS for 'huntmydeal.com' points to this VPS IP."
+echo -e "  3. Caddy logs are healthy: ${CYAN}docker logs caddy${NC} or ${CYAN}journalctl -u caddy${NC}"
 echo ""
