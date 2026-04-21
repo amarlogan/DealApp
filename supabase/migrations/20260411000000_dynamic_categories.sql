@@ -23,7 +23,7 @@ CREATE POLICY read_all_categories ON categories FOR SELECT USING (true);
 -- Seed Categories
 INSERT INTO categories (id, label, emoji, description, phase, sort_order) VALUES
 ('electronics',  'Electronics',          '⚡',  'TVs, headphones, phones & more',    1, 10),
-('home-kitchen', 'Home & Kitchen',       '🏠',  'Appliances, cookware & décor',      1, 20),
+('home-kitchen', 'Home & Kitchen',       '🏠',  'Appliances, cookware & decor',      1, 20),
 ('fashion',      'Fashion & Apparel',    '👗',  'Clothing, suits & accessories',     1, 30),
 ('shoes',        'Shoes & Sneakers',     '👟',  'Nike, Adidas & top brands',         1, 40),
 ('sports',       'Sports & Outdoors',    '🏃',  'Fitness, camping & adventure',      1, 50),

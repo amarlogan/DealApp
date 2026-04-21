@@ -22,6 +22,13 @@ export const CATEGORIES: Category[] = [
   { id: 'food',         label: 'Food & Dining',         emoji: '🍽️', description: 'Restaurants & food subscriptions', phase: 2 },
   { id: 'travel',       label: 'Travel & Hotels',       emoji: '✈️',  description: 'Flights, hotels & experiences',    phase: 2 },
   { id: 'auto',         label: 'Auto & Tools',          emoji: '🔧',  description: 'Car accessories & hardware',        phase: 2 },
+  { id: 'health',       label: 'Health & Wellness',    emoji: '💊',  description: 'Vitamins, fitness & care',          phase: 1 },
+  { id: 'pets',         label: 'Pet Supplies',         emoji: '🐶',  description: 'Food, toys & accessories',          phase: 1 },
+  { id: 'books',        label: 'Books & Audible',      emoji: '📚',  description: 'Bestsellers & audiobooks',          phase: 1 },
+  { id: 'software',     label: 'Software & Apps',      emoji: '💻',  description: 'Subscriptions & digital goods',     phase: 1 },
+  { id: 'gaming',       label: 'Video Games',          emoji: '🎮',  description: 'Consoles, PC & accessories',        phase: 1 },
+  { id: 'grocery',      label: 'Groceries & Daily',    emoji: '🛒',  description: 'Pantry staples & fresh food',       phase: 1 },
+  { id: 'office',       label: 'Office Supplies',      emoji: '📎',  description: 'Desks, chairs & stationery',        phase: 1 },
 ];
 
 export const ACTIVE_CATEGORIES   = CATEGORIES.filter(c => c.phase === 1);

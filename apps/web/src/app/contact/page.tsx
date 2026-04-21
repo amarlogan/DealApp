@@ -169,7 +169,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <div className="font-bold">Active Support</div>
-                  <div className="text-sm text-gray-400">9:00 AM — 6:00 PM EST</div>
+                  <div className="text-sm text-gray-400">9:00 AM - 6:00 PM EST</div>
                 </div>
               </div>
               <div className="flex items-start gap-4">
