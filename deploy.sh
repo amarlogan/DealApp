@@ -91,7 +91,7 @@ fi
 
 # ── Step 5: Rebuild and restart Docker ────────────────────────────────────────
 info "Building and restarting Docker container..."
-docker compose up -d --build
+docker compose --env-file .env.production up -d --build
 success "Docker containers rebuilt and started."
 
 # ── Step 6: Reload Caddy (Reverse Proxy) ──────────────────────────────────────
