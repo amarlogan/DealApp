@@ -25,10 +25,16 @@ type Deal = {
 
 export default function DealsClient({ 
   initialDeals,
-  favoriteIds = []
+  favoriteIds = [],
+  initialCategory = "",
+  initialTag = "",
+  initialSeason = ""
 }: { 
   initialDeals: Deal[];
   favoriteIds: string[];
+  initialCategory?: string;
+  initialTag?: string;
+  initialSeason?: string;
 }) {
   const { user, openLogin } = useAuth();
   const [pagedDeals, setPagedDeals] = useState<Deal[]>(initialDeals);
@@ -37,8 +43,9 @@ export default function DealsClient({
   const [hasMore, setHasMore] = useState(initialDeals.length >= 24);
   const [autoScrollCount, setAutoScrollCount] = useState(0);
   const [sort, setSort] = useState("newest");
-  const [category, setCategory] = useState("");
-  const [tag, setTag] = useState("");
+  const [category, setCategory] = useState(initialCategory);
+  const [tag, setTag] = useState(initialTag);
+  const [season, setSeason] = useState(initialSeason);
   const loaderRef = useRef<HTMLDivElement>(null);
   const favSet = new Set(favoriteIds);
 
@@ -69,6 +76,7 @@ export default function DealsClient({
       });
       if (category) query.append("category", category);
       if (tag) query.append("tag", tag);
+      if (season) query.append("season", season);
 
       const res = await fetch(`/api/deals?${query.toString()}`);
       const data = await res.json();
@@ -97,7 +105,7 @@ export default function DealsClient({
     // Only run if not initial mount to avoid duplicate fetch, since initialDeals is passed.
     // Wait, since initialDeals doesn't respect the local state initially, we should just fetch if any state is not default.
     // Let's just reset page to 1 and fetch.
-    if (sort !== "newest" || category !== "" || tag !== "") {
+    if (sort !== "newest" || category !== initialCategory || tag !== initialTag || season !== initialSeason) {
       setHasMore(true);
       loadMoreDeals(1);
     } else {
@@ -106,7 +114,7 @@ export default function DealsClient({
       setHasMore(initialDeals.length >= 24);
       setAutoScrollCount(0);
     }
-  }, [sort, category, tag]);
+  }, [sort, category, tag, season]);
 
   return (
     <div className="animate-in fade-in w-full pt-1 pb-16">
@@ -199,9 +207,9 @@ export default function DealsClient({
             <h1 className="text-lg font-black text-gray-900 tracking-tight">All Deals</h1>
           </div>
           
-          {(category || tag) && (
+          {(category || tag || season) && (
             <button 
-              onClick={() => { setCategory(""); setTag(""); }}
+              onClick={() => { setCategory(""); setTag(""); setSeason(""); }}
               className="text-[10px] font-black text-red-500 bg-red-50 px-2 py-1 rounded-md flex items-center gap-1 active:scale-95 transition-transform"
             >
               <FilterX size={12} /> Clear

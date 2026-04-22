@@ -3,7 +3,12 @@ import DealsClient from "./DealsClient";
 
 export const revalidate = 60; // Refresh more frequently than home
 
-export default async function DealsPage() {
+export default async function DealsPage({
+  searchParams
+}: {
+  searchParams: Promise<{ category?: string; tag?: string; season?: string }>;
+}) {
+  const { category, tag, season } = await searchParams;
   const supabaseAdmin = createSupabaseAdmin();
   const supabaseServer = await createSupabaseServerClient();
   
@@ -23,11 +28,28 @@ export default async function DealsPage() {
   }
 
   // 2. Fetch Initial Deals (Page 1)
-  const { data: dealsData } = await supabaseAdmin
+  let selectString = "*";
+  if (season) {
+    selectString = "*, deal_seasons!inner(season_id)";
+  }
+
+  let query = supabaseAdmin
     .from("deals")
-    .select("*")
+    .select(selectString)
     .eq("status", "active")
-    .eq("in_stock", true)
+    .eq("in_stock", true);
+
+  if (category) query = query.eq("category_id", category);
+  if (tag) {
+    if (tag === "Flash Deal") {
+      query = query.gte("discount_percentage", 40).is("badge", null);
+    } else {
+      query = query.eq("badge", tag);
+    }
+  }
+  if (season) query = query.eq("deal_seasons.season_id", season);
+
+  const { data: dealsData } = await query
     .limit(24)
     .order("created_at", { ascending: false });
 
@@ -35,6 +57,9 @@ export default async function DealsPage() {
     <DealsClient 
       initialDeals={dealsData || []} 
       favoriteIds={favoriteIds}
+      initialCategory={category}
+      initialTag={tag}
+      initialSeason={season}
     />
   );
 }
