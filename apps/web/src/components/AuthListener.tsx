@@ -32,9 +32,9 @@ export default function AuthListener() {
     handleAuth();
 
     // Also check on hash changes
-    window.addEventListener("hashchange", handleHash);
-    return () => window.removeEventListener("hashchange", handleHash);
-  }, [router]);
+    window.addEventListener("hashchange", handleAuth);
+    return () => window.removeEventListener("hashchange", handleAuth);
+  }, [router, sb.auth]);
 
   return null;
 }
