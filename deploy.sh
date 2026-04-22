@@ -152,7 +152,7 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   success "Using internal container name: $SMTP_HOST"
 
   set_env_var "SMTP_HOST" "$SMTP_HOST" "$SUPABASE_ENV"
-  set_env_var "SMTP_PORT" "2500" "$SUPABASE_ENV"
+  set_env_var "SMTP_PORT" "25" "$SUPABASE_ENV"
   set_env_var "SMTP_USER" "" "$SUPABASE_ENV"
   set_env_var "SMTP_PASS" "" "$SUPABASE_ENV"
   set_env_var "SMTP_ADMIN_EMAIL" "noreply@huntmydeal.com" "$SUPABASE_ENV"
@@ -160,7 +160,7 @@ if [[ -f "$SUPABASE_ENV" ]]; then
 
   # Also set the direct GOTRUE vars just to be absolutely bulletproof
   set_env_var "GOTRUE_SMTP_HOST" "$SMTP_HOST" "$SUPABASE_ENV"
-  set_env_var "GOTRUE_SMTP_PORT" "2500" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_SMTP_PORT" "25" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_USER" "" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_PASS" "" "$SUPABASE_ENV"
 

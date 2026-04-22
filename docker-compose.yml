@@ -30,23 +30,18 @@ services:
       - supabase_default
 
   smtp:
-    image: axllent/mailpit
+    image: namshi/smtp
     container_name: huntmydeal-smtp
     restart: always
     ports:
-      - "25:2500"
-      - "587:2500"
-      - "2500:2500"
-      - "8025:8025"
-
+      - "25:25"
     networks:
       supabase_default:
         aliases:
           - supabase-mail
     environment:
-      - MP_SMTP_AUTH_ACCEPT_ANY=1
-      - MP_SMTP_AUTH_ALLOW_INSECURE=1
-      - MP_SMTP_BIND_ADDR=0.0.0.0:2500
+      - RELAY_NETWORKS=172.16.0.0/12:192.168.0.0/16:10.0.0.0/8
+      - DOMAIN=huntmydeal.com
 
 
 networks:
