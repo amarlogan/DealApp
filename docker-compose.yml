@@ -33,6 +33,8 @@ services:
     image: namshi/smtp
     container_name: huntmydeal-smtp
     restart: always
+    ports:
+      - "25:25"
     networks:
       - supabase_default
     environment:

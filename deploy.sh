@@ -146,7 +146,7 @@ if [[ -f "$SUPABASE_ENV" ]]; then
     fi
   }
 
-  set_env_var "GOTRUE_SMTP_HOST" "huntmydeal-smtp" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_SMTP_HOST" "srv1603188.hstgr.cloud" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_PORT" "25" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_USER" "" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_PASS" "" "$SUPABASE_ENV"
