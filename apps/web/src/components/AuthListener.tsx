@@ -14,17 +14,24 @@ export default function AuthListener() {
       const hash = window.location.hash;
       const code = url.searchParams.get("code");
 
-      // Handle Hash (Implicit Flow)
-      if (hash.includes("type=recovery")) {
+      console.log("AuthWatcher: Checking...", { path: url.pathname, hash: !!hash, code: !!code });
+
+      // Handle Hash (Implicit Flow) - Check for recovery in the fragment
+      if (hash.includes("type=recovery") || hash.includes("recovery")) {
+        console.log("AuthWatcher: Recovery hash detected! Redirecting...");
         window.location.replace("/reset-password" + hash);
         return;
       }
 
       // Handle Code (PKCE Flow)
       if (code) {
+        console.log("AuthWatcher: Code detected! Exchanging...");
         const { error } = await sb.auth.exchangeCodeForSession(code);
         if (!error) {
+          console.log("AuthWatcher: Exchange successful! Redirecting...");
           router.push("/reset-password");
+        } else {
+          console.error("AuthWatcher: Exchange failed", error);
         }
       }
     };
