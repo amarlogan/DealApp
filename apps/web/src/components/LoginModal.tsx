@@ -143,7 +143,7 @@ export default function LoginModal({ onClose }: { onClose: () => void }) {
               <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="email"
-                placeholder="Email address"
+                placeholder="Email address (Username)"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -174,7 +174,7 @@ export default function LoginModal({ onClose }: { onClose: () => void }) {
             )}
 
             {mode === "login" && (
-              <div className="flex justify-end">
+              <div className="flex justify-end mt-1">
                 <button
                   type="button"
                   onClick={() => { setMode("forgot"); setError(null); setSuccess(null); }}
