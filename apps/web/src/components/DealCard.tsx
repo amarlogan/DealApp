@@ -124,8 +124,8 @@ export default function DealCard({
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
-        {/* Top-left badges */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10">
+        {/* Top-left badges (flex-wrap to prevent overlap) */}
+        <div className="absolute top-2.5 left-2.5 right-9 flex flex-wrap items-start gap-1.5 z-10 pointer-events-none">
           {deal.badge === "Best Seller" || deal.badge === "Amazon Choice" ? (
             <span className="bg-[#ff9900] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full shadow flex items-center gap-1">
               {deal.badge === "Amazon Choice" ? "✦" : "🏆"} {deal.badge}
@@ -149,14 +149,14 @@ export default function DealCard({
               <Zap size={9} /> Flash Deal
             </span>
           )}
-        </div>
 
-        {/* Discount pill — top right area */}
-        {deal.discount_percentage > 0 && (
-          <div className="absolute top-2.5 right-9 z-10 bg-[var(--primary)] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">
-            -{deal.discount_percentage}%
-          </div>
-        )}
+          {/* Discount pill */}
+          {deal.discount_percentage > 0 && (
+            <span className="bg-[var(--primary)] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">
+              -{deal.discount_percentage}%
+            </span>
+          )}
+        </div>
 
         {/* Alert + bookmark buttons */}
         <div className="absolute top-2 right-2 z-20 flex flex-col gap-1">
