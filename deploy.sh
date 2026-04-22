@@ -185,9 +185,15 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   echo "  - TLS:  false"
   echo "  - Site: https://huntmydeal.com"
   
-  # Restart Supabase Auth to apply changes
-  info "Restarting Supabase Auth container..."
+  # Restart Supabase services to apply changes
+  info "Restarting Supabase Auth and Caddy..."
   (cd ../supabase/docker && docker compose up -d auth)
+  
+  if [ -f "Caddyfile" ]; then
+    cp Caddyfile ../supabase/docker/Caddyfile
+    (cd ../supabase/docker && docker compose up -d caddy 2>/dev/null || docker compose up -d supabase-caddy)
+  fi
+
   
   info "Verifying final container environment..."
   docker exec supabase-auth env | grep "GOTRUE_SMTP" || true
