@@ -128,6 +128,28 @@ else
   warn "Internal connection failed. Check your Docker networking and HOSTNAME settings."
 fi
 
+# ── Step 8: Sync Supabase SMTP Settings ──────────────────────────────────────
+# Automatically configures the sibling Supabase instance to use our new SMTP relay
+SUPABASE_ENV="../supabase/docker/.env"
+if [[ -f "$SUPABASE_ENV" ]]; then
+  info "Syncing SMTP settings to Supabase Auth..."
+  
+  # Update SMTP values in the Supabase .env file
+  sed -i 's|^GOTRUE_SMTP_HOST=.*|GOTRUE_SMTP_HOST=huntmydeal-smtp|' "$SUPABASE_ENV"
+  sed -i 's|^GOTRUE_SMTP_PORT=.*|GOTRUE_SMTP_PORT=25|' "$SUPABASE_ENV"
+  sed -i 's|^GOTRUE_SMTP_USER=.*|GOTRUE_SMTP_USER=|' "$SUPABASE_ENV"
+  sed -i 's|^GOTRUE_SMTP_PASS=.*|GOTRUE_SMTP_PASS=|' "$SUPABASE_ENV"
+  sed -i 's|^GOTRUE_MAILER_AUTOCONFIRM=.*|GOTRUE_MAILER_AUTOCONFIRM=false|' "$SUPABASE_ENV"
+  sed -i 's|^GOTRUE_SMTP_ADMIN_EMAIL=.*|GOTRUE_SMTP_ADMIN_EMAIL=noreply@huntmydeal.com|' "$SUPABASE_ENV"
+  
+  # Restart Supabase Auth to apply changes
+  info "Restarting Supabase Auth container..."
+  (cd ../supabase/docker && docker compose up -d auth)
+  success "Supabase SMTP settings synced and Auth service restarted."
+else
+  warn "Supabase directory not found at $SUPABASE_ENV. Skipping SMTP sync."
+fi
+
 success "Container rebuilt and running."
 
 # ── Done ──────────────────────────────────────────────────────────────────────
