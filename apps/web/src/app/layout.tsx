@@ -10,6 +10,7 @@ import { ShoppingCart, Bell, Search, MapPin, Percent, ChevronDown, ChevronRight,
 import { createSupabaseAdmin } from "@/lib/supabase-server";
 import SearchBar from "@/components/SearchBar";
 import CategoryNav from "@/components/CategoryNav";
+import AuthListener from "@/components/AuthListener";
 
 const inter  = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -68,6 +69,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`${inter.variable} ${outfit.variable} font-sans antialiased min-h-screen flex flex-col`}>
         <Providers>
           <ThemeProvider season={activeSeason}>
+            <AuthListener />
             
             <ResponsiveShell navs={navs} activeSeason={activeSeason}>
               {children}
