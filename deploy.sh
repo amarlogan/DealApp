@@ -154,7 +154,8 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "GOTRUE_SMTP_PORT" "25" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_USER" "user" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_PASS" "pass" "$SUPABASE_ENV"
-  set_env_var "GOTRUE_MAILER_AUTOCONFIRM" "false" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_MAILER_AUTOCONFIRM" "true" "$SUPABASE_ENV"
+
   set_env_var "GOTRUE_SMTP_ADMIN_EMAIL" "noreply@huntmydeal.com" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_SENDER_NAME" "HuntMyDeal" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_TLS_ENABLED" "false" "$SUPABASE_ENV"
