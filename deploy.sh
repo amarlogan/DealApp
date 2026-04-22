@@ -177,6 +177,7 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "SITE_URL" "https://huntmydeal.com" "$SUPABASE_ENV"
   set_env_var "GOTRUE_MAILER_URLCONFIG_SITE_URL" "https://huntmydeal.com" "$SUPABASE_ENV"
   set_env_var "GOTRUE_MAILER_AUTOCONFIRM" "false" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_MAILER_OTP_EXP" "86400" "$SUPABASE_ENV"
 
   info "Final Supabase Config:"
   echo "  - Host: $SMTP_HOST"
