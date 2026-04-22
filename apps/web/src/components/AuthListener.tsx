@@ -10,7 +10,8 @@ export default function AuthListener() {
     const handleHash = () => {
       const hash = window.location.hash;
       if (hash.includes("type=recovery")) {
-        router.push("/reset-password");
+        // We MUST preserve the hash so Supabase can see the tokens on the next page
+        window.location.replace("/reset-password" + hash);
       }
     };
 
