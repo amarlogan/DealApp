@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import DealCard from "@/components/DealCard";
-import { ChevronRight, ChevronLeft, Sparkles, Zap, TrendingUp, Percent, Filter, ChevronDown } from "lucide-react";
+import { ChevronRight, ChevronLeft, Sparkles, Zap, TrendingUp, Percent, Filter, ChevronDown, FilterX } from "lucide-react";
 import { HERO_COPY } from "@/config/categories";
 import Link from "next/link";
 import useDevice from "@/lib/useDevice";
@@ -53,6 +53,8 @@ type HeroSlide = {
   button_text?: string;
   button_link?: string;
   bg_gradient?: string;
+  featured_image_url?: string;
+  is_image_only?: boolean;
 };
 
 function Carousel({ title, icon, deals, favoriteIds, featured = false, seasonTheme = false, seeAllHref = "#" }: {
@@ -203,6 +205,8 @@ export default function HomeClient({
   const [hasMore, setHasMore] = useState(hubDeals.length >= 24);
   const [autoScrollCount, setAutoScrollCount] = useState(0);
   const [sort, setSort] = useState("newest");
+  const [category, setCategory] = useState("");
+  const [tag, setTag] = useState("");
   const loaderRef = useRef<HTMLDivElement>(null);
 
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
@@ -253,16 +257,30 @@ export default function HomeClient({
     return () => observer.disconnect();
   }, [hasMore, loading, autoScrollCount, isMobile]);
 
-  const loadMoreDeals = async () => {
-    if (loading || !hasMore) return;
+  const loadMoreDeals = async (overridePage?: number) => {
+    const pageToFetch = overridePage || page;
+    if (loading || (!hasMore && !overridePage)) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/deals?page=${page}&limit=24&sort=${sort}`);
+      const query = new URLSearchParams({
+        page: pageToFetch.toString(),
+        limit: "24",
+        sort
+      });
+      if (category) query.append("category", category);
+      if (tag) query.append("tag", tag);
+
+      const res = await fetch(`/api/deals?${query.toString()}`);
       const data = await res.json();
       if (data.deals && data.deals.length > 0) {
-        setPagedDeals(prev => [...prev, ...data.deals]);
-        setPage(p => p + 1);
-        setAutoScrollCount(c => c + 1);
+        if (overridePage === 1) {
+          setPagedDeals(data.deals);
+        } else {
+          setPagedDeals(prev => [...prev, ...data.deals]);
+        }
+        setPage(pageToFetch + 1);
+        if (overridePage === 1) setAutoScrollCount(0);
+        else setAutoScrollCount(c => c + 1);
         if (data.deals.length < 24) setHasMore(false);
       } else {
         setHasMore(false);
@@ -273,6 +291,19 @@ export default function HomeClient({
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isMobile) return;
+    if (sort !== "newest" || category !== "" || tag !== "") {
+      setHasMore(true);
+      loadMoreDeals(1);
+    } else {
+      setPagedDeals(hubDeals);
+      setPage(2);
+      setHasMore(hubDeals.length >= 24);
+      setAutoScrollCount(0);
+    }
+  }, [sort, category, tag, isMobile]);
 
   // 1. DESKTOP VIEW
   if (!isMobile && device !== "loading") {
@@ -295,30 +326,56 @@ export default function HomeClient({
                     }`}
                     style={{ backgroundImage: `url('${slide.image_url}')` }} 
                   />
-                  <div className={`absolute inset-0 bg-gradient-to-r ${slide.bg_gradient || 'from-black/80 via-black/40 to-transparent'}`} />
+                  
+                  {!slide.is_image_only && (
+                    <div className={`absolute inset-0 bg-gradient-to-r ${slide.bg_gradient || 'from-black/80 via-black/40 to-transparent'}`} />
+                  )}
 
-                  {isActive && (
-                    <div key={`content-${idx}`} className="relative z-20 h-full p-8 lg:px-16 lg:py-10 flex flex-col justify-center">
-                      <div className="max-w-2xl">
-                        {slide.tag_text && (
-                          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white text-[10px] lg:text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full mb-4 border border-white/20 animate-in slide-in-from-bottom-4 duration-500">
-                            <Sparkles size={12} className="text-[#90e050]" /> {slide.tag_text}
+                  {isActive && !slide.is_image_only && (
+                    <div key={`content-${idx}`} className="relative z-20 h-full p-8 lg:px-16 lg:py-10 flex items-center">
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full items-center">
+                        <div className="lg:col-span-7">
+                          {slide.tag_text && (
+                            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md text-white text-[10px] lg:text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full mb-4 border border-white/20 animate-in slide-in-from-bottom-4 duration-500">
+                              <Sparkles size={12} className="text-[#90e050]" /> {slide.tag_text}
+                            </div>
+                          )}
+                          <h1 className="text-4xl lg:text-6xl font-black tracking-tight leading-[1] text-white mb-3 drop-shadow-2xl animate-in slide-in-from-bottom-8 duration-700">
+                            {slide.title}<br />
+                            {slide.accent_text && <span className="text-[#90e050] inline-block mt-2">{slide.accent_text}</span>}
+                          </h1>
+                          <p className="text-base lg:text-lg text-white/80 font-medium mb-8 max-w-xl leading-relaxed animate-in slide-in-from-bottom-10 duration-[900ms]">
+                            {slide.subtitle}
+                          </p>
+                          <div className="flex flex-wrap gap-4 animate-in slide-in-from-bottom-12 duration-1000">
+                            <Link href={slide.button_link || "/deals"} className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-8 py-3.5 rounded-full font-black shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3 text-sm lg:text-base">
+                              <Percent size={18} /> {slide.button_text || "Browse Deals"}
+                            </Link>
+                          </div>
+                        </div>
+
+                        {/* Promotional Featured Image */}
+                        {slide.featured_image_url && (
+                          <div className="lg:col-span-5 hidden lg:flex justify-center animate-in zoom-in-95 fade-in duration-1000 delay-300">
+                            <div className="relative group/promo">
+                               <div className="absolute inset-0 bg-[var(--primary)] blur-3xl opacity-20 group-hover/promo:opacity-40 transition-opacity duration-1000" />
+                               <div className="relative w-72 h-72 lg:w-96 lg:h-96 rounded-[3rem] overflow-hidden border-4 border-white/10 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] rotate-3 hover:rotate-0 transition-all duration-700 hover:scale-105">
+                                 <img 
+                                   src={slide.featured_image_url} 
+                                   className="w-full h-full object-cover" 
+                                   alt="Promotional Spotlight" 
+                                 />
+                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                               </div>
+                            </div>
                           </div>
                         )}
-                        <h1 className="text-4xl lg:text-6xl font-black tracking-tight leading-[1] text-white mb-3 drop-shadow-2xl animate-in slide-in-from-bottom-8 duration-700">
-                          {slide.title}<br />
-                          {slide.accent_text && <span className="text-[#90e050] inline-block mt-2">{slide.accent_text}</span>}
-                        </h1>
-                        <p className="text-base lg:text-lg text-white/80 font-medium mb-8 max-w-xl leading-relaxed animate-in slide-in-from-bottom-10 duration-[900ms]">
-                          {slide.subtitle}
-                        </p>
-                        <div className="flex flex-wrap gap-4 animate-in slide-in-from-bottom-12 duration-1000">
-                          <Link href={slide.button_link || "/deals"} className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-8 py-3.5 rounded-full font-black shadow-xl transition-all hover:scale-105 active:scale-95 flex items-center gap-3 text-sm lg:text-base">
-                            <Percent size={18} /> {slide.button_text || "Browse Deals"}
-                          </Link>
-                        </div>
                       </div>
                     </div>
+                  )}
+
+                  {isActive && slide.is_image_only && slide.button_link && (
+                     <Link href={slide.button_link} className="absolute inset-0 z-20 block" aria-label={`View deals for ${slide.title}`} />
                   )}
                 </div>
               );
@@ -482,38 +539,64 @@ export default function HomeClient({
   // 2. MOBILE VIEW (Hub Experience)
   return (
     <div className="animate-in fade-in w-full pt-1 pb-16">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-orange-50 rounded-lg text-orange-500">
-            <TrendingUp size={20} className="fill-orange-500/20" />
+      {/* Compact Mobile Header with Filters */}
+      <div className="mb-4 space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-orange-50 rounded-md text-orange-500">
+              <TrendingUp size={16} className="fill-orange-500/20" />
+            </div>
+            <h1 className="text-lg font-black text-gray-900 tracking-tight">Latest Deals</h1>
           </div>
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-            Latest Deals
-          </h1>
+          
+          {(category || tag) && (
+            <button 
+              onClick={() => { setCategory(""); setTag(""); }}
+              className="text-[10px] font-black text-red-500 bg-red-50 px-2 py-1 rounded-md flex items-center gap-1 active:scale-95 transition-transform"
+            >
+              <FilterX size={12} /> Clear
+            </button>
+          )}
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:flex-none">
+
+        <div className="grid grid-cols-3 gap-2">
+          <div className="relative">
+            <select 
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full appearance-none bg-white border border-gray-200 shadow-sm text-gray-700 text-[11px] font-bold rounded-lg pl-2 pr-6 py-2 outline-none focus:border-[var(--primary)] transition-colors capitalize"
+            >
+              <option value="">Category</option>
+              {['electronics', 'fashion', 'home', 'shoes', 'toys', 'beauty', 'sports'].map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+
+          <div className="relative">
+            <select 
+              value={tag}
+              onChange={(e) => setTag(e.target.value)}
+              className="w-full appearance-none bg-white border border-gray-200 shadow-sm text-gray-700 text-[11px] font-bold rounded-lg pl-2 pr-6 py-2 outline-none focus:border-[var(--primary)] transition-colors"
+            >
+              <option value="">Tag</option>
+              {["Hot Deal", "Deal of the Day", "Best Seller", "Amazon Choice", "Rollback", "Editor's Choice", "Flash Deal", "Price Drop"].map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+
+          <div className="relative">
             <select 
               value={sort}
-              onChange={(e) => {
-                setSort(e.target.value);
-                setPage(1);
-                setPagedDeals([]);
-                setHasMore(true);
-                setAutoScrollCount(0);
-              }}
-              className="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-xs font-bold rounded-full pl-4 pr-10 py-2.5 outline-none hover:border-[var(--primary)] transition-colors cursor-pointer shadow-sm"
+              onChange={(e) => setSort(e.target.value)}
+              className="w-full appearance-none bg-white border border-gray-200 shadow-sm text-gray-700 text-[11px] font-bold rounded-lg pl-2 pr-6 py-2 outline-none focus:border-[var(--primary)] transition-colors"
             >
-              <option value="newest">Newest First</option>
-              <option value="discount_percentage">Highest Discount</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
+              <option value="newest">Newest</option>
+              <option value="discount_percentage">Discount</option>
+              <option value="price_asc">Price Low</option>
+              <option value="price_desc">Price High</option>
             </select>
-            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
-          <button className="bg-white border border-gray-100 text-gray-400 p-2.5 rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all shadow-sm">
-            <Filter size={18} />
-          </button>
         </div>
       </div>
 

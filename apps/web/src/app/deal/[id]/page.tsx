@@ -12,6 +12,7 @@ import VotingSection from "@/components/VotingSection";
 import CommentSection from "@/components/CommentSection";
 import ViewTracker from "@/components/ViewTracker";
 import MarkdownContent from "@/components/MarkdownContent";
+import DealGallery from "@/components/DealGallery";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { formatDistanceToNow } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -40,6 +41,7 @@ type Deal = {
   score: number;
   is_hot: boolean;
   created_at: string;
+  images: string[];
   profiles?: {
     display_name: string;
   };
@@ -155,11 +157,13 @@ export async function generateMetadata({
   };
 }
 
-const MERCHANT_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  Amazon:  { bg: "bg-[#fff8e6]", text: "text-[#c45500]", label: "Get Deal at Amazon" },
-  Walmart: { bg: "bg-[#e6f0ff]", text: "text-[#0071ce]", label: "Get Deal at Walmart" },
-  Nike:    { bg: "bg-gray-900",  text: "text-white",     label: "Get Deal at Nike" },
-  Adidas:  { bg: "bg-black",     text: "text-white",     label: "Get Deal at Adidas" },
+const MERCHANT_STYLES: Record<string, { cls: string; label: string }> = {
+  Amazon:  { cls: "amazon",  label: "Amazon" },
+  Walmart: { cls: "walmart", label: "Walmart" },
+  Nike:    { cls: "nike",    label: "Nike" },
+  Adidas:  { cls: "adidas",  label: "Adidas" },
+  "H&M":   { cls: "generic", label: "H&M" },
+  Zara:    { cls: "generic", label: "Zara" },
 };
 
 export default async function DealDetailPage({
@@ -172,11 +176,7 @@ export default async function DealDetailPage({
   if (!deal) notFound();
 
   const savings    = (deal.original_price - deal.current_price).toFixed(2);
-  const mConfig    = MERCHANT_CONFIG[deal.merchant] ?? {
-    bg: "bg-[#e8f4e0]",
-    text: "text-[#53A318]",
-    label: `Get Deal at ${deal.merchant}`,
-  };
+  const merchant   = MERCHANT_STYLES[deal.merchant] ?? { cls: "generic", label: deal.merchant };
 
   // Simulated views & votes for slickdeals aesthetic
   const simulatedViews = Math.floor(Math.random() * 50000) + 5000;
@@ -199,36 +199,22 @@ export default async function DealDetailPage({
           <div className="grid grid-cols-1 lg:grid-cols-12 shrink-layout">
             
             {/* Left: Premium Image Section (5 cols) */}
-            <div className="lg:col-span-5 p-4 lg:p-6 bg-gray-50/50 relative">
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg bg-white group cursor-zoom-in">
-                <DealImage 
-                  src={deal.image_url} 
-                  alt={deal.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                  fallbackIconSize={60}
-                />
-              </div>
-              
-              {/* Dynamic Overlays */}
-              {deal.discount_percentage > 0 && (
-                <div className="absolute top-16 left-16 bg-[var(--primary)] text-white font-black text-xl px-6 py-2 rounded-2xl shadow-xl -rotate-6">
-                  -{deal.discount_percentage}%
-                </div>
-              )}
-              
-              <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-                {[1,2,3].map(i => (
-                  <div key={i} className="w-16 h-16 rounded-xl border-2 border-white shadow-sm overflow-hidden flex-shrink-0 cursor-pointer hover:border-[var(--primary)] transition-colors">
-                    <img src={deal.image_url} className="w-full h-full object-cover opacity-50 hover:opacity-100 transition-opacity" alt={`Thumbnail ${i}`}  />
-                  </div>
-                ))}
-              </div>
-            </div>
+            <DealGallery 
+              primaryImage={deal.image_url}
+              additionalImages={deal.images || []}
+              title={deal.title}
+              discountPercentage={deal.discount_percentage}
+              badge={deal.badge}
+              isHot={deal.is_hot}
+              isPopular={deal.is_popular}
+            />
 
             {/* Right: Content Section (7 cols) */}
             <div className="lg:col-span-7 p-6 lg:p-10 flex flex-col">
               <div className="flex items-center gap-3 mb-4">
-                <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">Frontpage Deal</span>
+                <span className={`merchant-badge ${merchant.cls}`}>
+                  {merchant.label}
+                </span>
                 <span className="text-gray-400 text-[11px] font-bold">
                   Posted by <span className="text-gray-900 font-bold">{deal.profiles?.display_name || "DealBot"}</span> • {formatDistanceToNow(deal.created_at)}
                 </span>
@@ -277,18 +263,20 @@ export default async function DealDetailPage({
               </div>
 
               {/* Promo Code (Conditional) */}
+        {/* Promo Code (Conditional) */}
               {deal.promo_code && <PromoCodeCopy code={deal.promo_code} />}
 
               {/* CTAs & Local Voting */}
               <div className="flex flex-col gap-3">
                 <div className="flex gap-3">
-                  <a
-                    href={`/api/exit?dealId=${deal.id}`}
-                    target="_blank"
+                  <a 
+                    href={deal.external_url} 
+                    target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex-1 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white py-3 px-6 rounded-xl font-black text-lg shadow-md transition-all flex items-center justify-center gap-2"
+                    className="flex-1 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-black px-8 py-4 rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all text-center flex items-center justify-center gap-2"
                   >
-                    {mConfig.label} <ExternalLink size={18} />
+                    Get Deal at {merchant.label}
+                    <ExternalLink size={20} />
                   </a>
                   <DealActions 
                     dealId={deal.id} 

@@ -36,7 +36,7 @@ export default function ResponsiveShell({
       <>
         {/* Only show splash on mobile while loading or on initial mount */}
         {isLoading && <SplashScreen />}
-        <MobileSearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+        <MobileSearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} navs={navs} />
         
         <div className="flex flex-col min-h-screen pb-[var(--bottom-nav-height)]">
           <MobileHeader onSearchOpen={() => setIsSearchOpen(true)} />

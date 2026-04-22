@@ -46,9 +46,24 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const { action, dealId, data } = body;
-    const { season_ids, ...dealFields } = data;
+    const { season_ids, ...rawFields } = data;
 
-    // 2. Route by Action (using Admin client for data ops)
+    // 2. STRIP NON-DB COLUMNS: Only include fields that exist in the 'deals' table
+    const allowedFields = [
+      'title', 'description', 'merchant', 'external_url', 'affiliate_url', 
+      'image_url', 'current_price', 'original_price', 'discount_percentage',
+      'category_id', 'badge', 'promo_code', 'in_stock', 'is_popular', 
+      'status', 'expires_at', 'rating', 'review_count', 'location', 'external_id', 'images'
+    ];
+
+    const dealFields: any = {};
+    allowedFields.forEach(field => {
+      if (rawFields[field] !== undefined) {
+        dealFields[field] = rawFields[field];
+      }
+    });
+
+    // 3. Route by Action (using Admin client for data ops)
     if (action === "create") {
       const validation = validateDeal(dealFields);
       if (!validation.isValid) {
@@ -59,7 +74,6 @@ export async function POST(req: NextRequest) {
         .from("deals")
         .insert([{
           ...dealFields,
-          user_id: user.id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }])

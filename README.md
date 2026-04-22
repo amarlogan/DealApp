@@ -64,6 +64,19 @@ To deploy the HuntMyDeal frontend to your Hostinger VPS after the database schem
 4. **Verify Deployment:**
    Open your live domain (e.g., `http://huntmydeal.com`) and verify that the application successfully fetches data from the production database.
 
+### 3. Configure Google OAuth (Optional)
+To enable "Sign in with Google", follow these steps to get your free credentials:
+
+1.  **Google Cloud Console**: Create a project at [console.cloud.google.com](https://console.cloud.google.com/).
+2.  **OAuth Consent Screen**: Go to "APIs & Services" > "OAuth consent screen", choose "External", and fill in the app name/email.
+3.  **Create Credentials**: Go to "APIs & Services" > "Credentials" > "Create Credentials" > "OAuth client ID".
+    *   **Application Type**: Web application
+    *   **Authorized Redirect URIs**: 
+        *   Local: `http://127.0.0.1:54321/auth/v1/callback`
+        *   Prod: `https://your-vps-url/auth/v1/callback`
+4.  **Update Config**: Copy the Client ID and Secret into `supabase/config.toml` under `[auth.external.google]`.
+5.  **Restart**: Run `npx supabase stop` and `npx supabase start`.
+
 ---
 
 ## 📂 Project Architecture & Component Map

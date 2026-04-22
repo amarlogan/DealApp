@@ -1,18 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Home, Grid, Search, Bookmark, User } from "lucide-react";
+import { useAuth } from "@/components/AuthProvider";
 
 export default function MobileBottomNav({ onSearchOpen }: { onSearchOpen: () => void }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, openLogin } = useAuth();
+
+  const handleAuthNav = (e: React.MouseEvent, href: string) => {
+    if (!user) {
+      e.preventDefault();
+      openLogin();
+    }
+  };
 
   const navItems = [
     { label: "Home", href: "/", icon: Home },
     { label: "Categories", href: "/categories", icon: Grid },
     { label: "Search", href: "#", icon: Search, onClick: onSearchOpen },
-    { label: "Saved", href: "/profile/saved", icon: Bookmark },
-    { label: "Profile", href: "/profile", icon: User },
+    { label: "Saved", href: "/profile/saved", icon: Bookmark, requireAuth: true },
+    { label: "Profile", href: "/profile", icon: User, requireAuth: true },
   ];
 
   return (
@@ -41,6 +51,7 @@ export default function MobileBottomNav({ onSearchOpen }: { onSearchOpen: () => 
             <Link
               key={item.label}
               href={item.href}
+              onClick={item.requireAuth ? (e) => handleAuthNav(e, item.href) : undefined}
               className="flex flex-col items-center gap-1 group"
             >
               <div className={`p-1 rounded-xl transition-colors ${isActive ? "text-[var(--primary)]" : "text-gray-400 group-hover:text-[var(--primary)]"}`}>

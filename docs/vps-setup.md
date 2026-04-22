@@ -20,6 +20,10 @@ HUNTMYDEAL_SUPABASE_URL="https://srv1603188.hstgr.cloud"
 HUNTMYDEAL_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsI..."
 HUNTMYDEAL_SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsI..."
 HUNTMYDEAL_BASE_URL="https://huntmydeal.com"
+
+# --- Google OAuth ---
+HUNTMYDEAL_GOOGLE_CLIENT_ID="your-google-client-id"
+HUNTMYDEAL_GOOGLE_CLIENT_SECRET="your-google-client-secret"
 ```
 
 source /etc/environment
@@ -119,3 +123,27 @@ Check logs:
 ```bash
 docker logs huntmydeal-web --tail 50
 ```
+---
+
+## 6. Enabling Google OAuth on VPS
+
+If you are self-hosting Supabase on the VPC, you must enable the Google provider in your Supabase configuration:
+
+1.  **Update Supabase `.env`**:
+    Locate your Supabase `docker-compose` directory on the VPS and add/update the following in your `.env` file:
+    ```bash
+    GOTRUE_EXTERNAL_GOOGLE_ENABLED=true
+    GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID="your-google-client-id"
+    GOTRUE_EXTERNAL_GOOGLE_SECRET="your-google-client-secret"
+    GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI="https://srv1603188.hstgr.cloud/auth/v1/callback"
+    GOTRUE_EXTERNAL_GOOGLE_SKIP_NONCE_CHECK=true
+    ```
+
+2.  **Restart Supabase**:
+    ```bash
+    docker compose up -d
+    ```
+
+3.  **Google Cloud Console Setup**:
+    - **Authorized JavaScript Origins**: `https://huntmydeal.com`
+    - **Authorized Redirect URIs**: `https://srv1603188.hstgr.cloud/auth/v1/callback`

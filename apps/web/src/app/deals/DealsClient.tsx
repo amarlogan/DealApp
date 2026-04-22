@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import DealCard from "@/components/DealCard";
-import { TrendingUp, Sparkles, Filter, ChevronDown, LayoutGrid, List } from "lucide-react";
+import { TrendingUp, Sparkles, Filter, ChevronDown, LayoutGrid, List, FilterX } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 
 type Deal = {
@@ -37,6 +37,8 @@ export default function DealsClient({
   const [hasMore, setHasMore] = useState(initialDeals.length >= 24);
   const [autoScrollCount, setAutoScrollCount] = useState(0);
   const [sort, setSort] = useState("newest");
+  const [category, setCategory] = useState("");
+  const [tag, setTag] = useState("");
   const loaderRef = useRef<HTMLDivElement>(null);
   const favSet = new Set(favoriteIds);
 
@@ -55,16 +57,30 @@ export default function DealsClient({
     return () => observer.disconnect();
   }, [hasMore, loading, autoScrollCount]);
 
-  const loadMoreDeals = async () => {
-    if (loading || !hasMore) return;
+  const loadMoreDeals = async (overridePage?: number) => {
+    const pageToFetch = overridePage || page;
+    if (loading || (!hasMore && !overridePage)) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/deals?page=${page}&limit=24&sort=${sort}`);
+      const query = new URLSearchParams({
+        page: pageToFetch.toString(),
+        limit: "24",
+        sort
+      });
+      if (category) query.append("category", category);
+      if (tag) query.append("tag", tag);
+
+      const res = await fetch(`/api/deals?${query.toString()}`);
       const data = await res.json();
       if (data.deals && data.deals.length > 0) {
-        setPagedDeals(prev => [...prev, ...data.deals]);
-        setPage(p => p + 1);
-        setAutoScrollCount(c => c + 1);
+        if (overridePage === 1) {
+          setPagedDeals(data.deals);
+        } else {
+          setPagedDeals(prev => [...prev, ...data.deals]);
+        }
+        setPage(pageToFetch + 1);
+        if (overridePage === 1) setAutoScrollCount(0);
+        else setAutoScrollCount(c => c + 1);
         if (data.deals.length < 24) setHasMore(false);
       } else {
         setHasMore(false);
@@ -76,10 +92,26 @@ export default function DealsClient({
     }
   };
 
+  // Re-fetch when sort, category, or tag changes
+  useEffect(() => {
+    // Only run if not initial mount to avoid duplicate fetch, since initialDeals is passed.
+    // Wait, since initialDeals doesn't respect the local state initially, we should just fetch if any state is not default.
+    // Let's just reset page to 1 and fetch.
+    if (sort !== "newest" || category !== "" || tag !== "") {
+      setHasMore(true);
+      loadMoreDeals(1);
+    } else {
+      setPagedDeals(initialDeals);
+      setPage(2);
+      setHasMore(initialDeals.length >= 24);
+      setAutoScrollCount(0);
+    }
+  }, [sort, category, tag]);
+
   return (
     <div className="animate-in fade-in w-full pt-1 pb-16">
-      {/* ── Compact Header Bar (Matching DealListing.tsx Spacing) ── */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+      {/* Desktop Header */}
+      <div className="hidden md:flex items-center justify-between gap-4 mb-8 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-orange-50 rounded-lg text-orange-500">
             <TrendingUp size={20} className="fill-orange-500/20" />
@@ -89,33 +121,135 @@ export default function DealsClient({
           </h1>
         </div>
 
-        <div className="flex items-center gap-4">
-          <span className="text-sm font-semibold text-gray-500 hidden sm:block">Sort by</span>
+        <div className="flex items-center gap-3 flex-wrap justify-end">
+          <div className="relative">
+            <select 
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-[13px] font-bold rounded-full pl-4 pr-9 py-2.5 outline-none hover:border-[var(--primary)] transition-colors cursor-pointer shadow-sm capitalize"
+            >
+              <option value="">All Categories</option>
+              {['electronics', 'fashion', 'home', 'shoes', 'toys', 'beauty', 'sports'].map(cat => (
+                 <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+
+          <div className="relative">
+            <select 
+              value={tag}
+              onChange={(e) => setTag(e.target.value)}
+              className="appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-[13px] font-bold rounded-full pl-4 pr-9 py-2.5 outline-none hover:border-[var(--primary)] transition-colors cursor-pointer shadow-sm"
+            >
+              <option value="">All Tags</option>
+              {["Hot Deal", "Deal of the Day", "Best Seller", "Amazon Choice", "Rollback", "Editor's Choice", "Flash Deal", "Price Drop"].map(t => (
+                 <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+
+          {(category || tag) && (
+            <button 
+              onClick={() => {
+                setCategory("");
+                setTag("");
+              }}
+              title="Clear all filters"
+              className="relative group flex items-center justify-center p-2.5 rounded-full bg-gradient-to-br from-red-500/10 to-rose-600/20 border border-red-500/30 backdrop-blur-md transition-all hover:scale-110 active:scale-95 shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_25px_rgba(239,68,68,0.5)]"
+            >
+              <FilterX size={16} className="text-red-500" strokeWidth={2.5} />
+              
+              {/* Tooltip */}
+              <div className="absolute top-full right-0 mt-3 whitespace-nowrap bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-50">
+                Reset Filters
+              </div>
+            </button>
+          )}
+
+          <div className="hidden sm:block w-px h-6 bg-gray-200 mx-1" />
+
+          <div className="relative flex items-center gap-2">
+            <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest hidden lg:block">Sort By</span>
+            <div className="relative">
+              <select 
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                className="appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-[13px] font-bold rounded-full pl-4 pr-9 py-2.5 outline-none hover:border-[var(--primary)] transition-colors cursor-pointer shadow-sm"
+              >
+                <option value="discount_percentage">Highest Discount</option>
+                <option value="newest">Newest First</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+              </select>
+              <ChevronDown size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Header (Matches HomeClient Compact View) */}
+      <div className="md:hidden mb-4 space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-orange-50 rounded-md text-orange-500">
+              <TrendingUp size={16} className="fill-orange-500/20" />
+            </div>
+            <h1 className="text-lg font-black text-gray-900 tracking-tight">All Deals</h1>
+          </div>
+          
+          {(category || tag) && (
+            <button 
+              onClick={() => { setCategory(""); setTag(""); }}
+              className="text-[10px] font-black text-red-500 bg-red-50 px-2 py-1 rounded-md flex items-center gap-1 active:scale-95 transition-transform"
+            >
+              <FilterX size={12} /> Clear
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <div className="relative">
+            <select 
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full appearance-none bg-white border border-gray-200 shadow-sm text-gray-700 text-[11px] font-bold rounded-lg pl-2 pr-6 py-2 outline-none focus:border-[var(--primary)] transition-colors capitalize"
+            >
+              <option value="">Category</option>
+              {['electronics', 'fashion', 'home', 'shoes', 'toys', 'beauty', 'sports'].map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+
+          <div className="relative">
+            <select 
+              value={tag}
+              onChange={(e) => setTag(e.target.value)}
+              className="w-full appearance-none bg-white border border-gray-200 shadow-sm text-gray-700 text-[11px] font-bold rounded-lg pl-2 pr-6 py-2 outline-none focus:border-[var(--primary)] transition-colors"
+            >
+              <option value="">Tag</option>
+              {["Hot Deal", "Deal of the Day", "Best Seller", "Amazon Choice", "Rollback", "Editor's Choice", "Flash Deal", "Price Drop"].map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          </div>
+
           <div className="relative">
             <select 
               value={sort}
-              onChange={(e) => {
-                setSort(e.target.value);
-                setPage(1);
-                setPagedDeals([]);
-                setHasMore(true);
-                setAutoScrollCount(0);
-              }}
-              className="appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-sm font-bold rounded-full pl-5 pr-10 py-2.5 outline-none hover:border-[var(--primary)] transition-colors cursor-pointer shadow-sm"
+              onChange={(e) => setSort(e.target.value)}
+              className="w-full appearance-none bg-white border border-gray-200 shadow-sm text-gray-700 text-[11px] font-bold rounded-lg pl-2 pr-6 py-2 outline-none focus:border-[var(--primary)] transition-colors"
             >
-              <option value="discount_percentage">Highest Discount</option>
-              <option value="newest">Newest First</option>
-              <option value="price_asc">Price: Low to High</option>
-              <option value="price_desc">Price: High to Low</option>
+              <option value="newest">Newest</option>
+              <option value="discount_percentage">Discount</option>
+              <option value="price_asc">Price Low</option>
+              <option value="price_desc">Price High</option>
             </select>
-            <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
-          
-          <button className="bg-white border border-gray-100 text-gray-400 p-2.5 rounded-xl hover:border-[var(--primary)] hover:text-[var(--primary)] transition-all shadow-sm">
-            <Filter size={18} />
-          </button>
         </div>
       </div>
+
 
       {/* ── Deals Grid ── */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-5 auto-rows-fr">

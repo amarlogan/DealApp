@@ -4,7 +4,7 @@ import { X, Search as SearchIcon, ArrowLeft } from "lucide-react";
 import SearchBar from "./SearchBar";
 import { useEffect, useState } from "react";
 
-export default function MobileSearchOverlay({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+export default function MobileSearchOverlay({ isOpen, onClose, navs }: { isOpen: boolean; onClose: () => void; navs?: any[] }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -41,16 +41,24 @@ export default function MobileSearchOverlay({ isOpen, onClose }: { isOpen: boole
         <div className="flex-1 overflow-y-auto p-6">
           <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Popular Categories</h3>
           <div className="grid grid-cols-2 gap-3">
-            {["Electronics", "Fashion", "Shoes", "Home & Kitchen", "Sports", "Toys"].map(cat => (
-              <a 
-                key={cat} 
-                href={`/category/${cat.toLowerCase().replace(/ & /g, "-")}`}
-                className="bg-gray-50 hover:bg-gray-100 p-4 rounded-2xl text-sm font-bold text-gray-700 transition-colors flex items-center justify-between"
-              >
-                {cat}
-                <SearchIcon size={14} className="text-gray-300" />
-              </a>
-            ))}
+            {navs?.slice(0, 10).map((nav: any) => {
+              const label = nav.label_override || (nav.categories?.label ?? "Unknown");
+              const href = nav.href || (nav.category_id ? `/category/${nav.category_id}` : "#");
+              
+              return (
+                <a 
+                  key={nav.id} 
+                  href={href}
+                  className="bg-gray-50 hover:bg-gray-100 p-4 rounded-2xl text-sm font-bold text-gray-700 transition-colors flex items-center justify-between group"
+                >
+                  <span className="flex items-center gap-2">
+                    {nav.categories?.emoji && <span className="text-lg">{nav.categories.emoji}</span>}
+                    {label}
+                  </span>
+                  <SearchIcon size={14} className="text-gray-300 group-hover:text-[var(--primary)] transition-colors" />
+                </a>
+              );
+            })}
           </div>
         </div>
       </div>

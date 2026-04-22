@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
   const season   = searchParams.get("season") ?? undefined;
   const featured = searchParams.get("featured") === "true";
   const q        = searchParams.get("q") ?? undefined;
+  const tag      = searchParams.get("tag") ?? undefined;
   const sort     = searchParams.get("sort") ?? "discount_percentage";
   const minDisc  = parseInt(searchParams.get("min_discount") ?? "0");
   const page     = parseInt(searchParams.get("page") ?? "1");
@@ -31,6 +32,14 @@ export async function GET(req: NextRequest) {
       .gte("discount_percentage", minDisc);
 
     if (category) query = query.eq("category_id", category);
+    
+    if (tag) {
+      if (tag === "Flash Deal") {
+        query = query.gte("discount_percentage", 40).is("badge", null);
+      } else {
+        query = query.eq("badge", tag);
+      }
+    }
     
     if (season) {
       query = query.eq("deal_seasons.season_id", season);
