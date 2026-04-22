@@ -158,11 +158,13 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "GOTRUE_SMTP_ADMIN_EMAIL" "noreply@huntmydeal.com" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_SENDER_NAME" "HuntMyDeal" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_TLS_ENABLED" "false" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_MAILER_URLCONFIG_SITE_URL" "https://huntmydeal.com" "$SUPABASE_ENV"
   
   info "Final Supabase SMTP Config:"
   echo "  - Host: $SMTP_HOST"
   echo "  - Port: 25"
   echo "  - TLS:  false"
+  echo "  - Site: https://huntmydeal.com"
   
   # Restart Supabase Auth to apply changes
   info "Restarting Supabase Auth container..."
