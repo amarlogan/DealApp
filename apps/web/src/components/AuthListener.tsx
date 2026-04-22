@@ -21,7 +21,7 @@ export default function AuthListener() {
       }
 
       // Handle Code (PKCE Flow)
-      if (code && url.pathname === "/auth/callback") {
+      if (code) {
         const { error } = await sb.auth.exchangeCodeForSession(code);
         if (!error) {
           router.push("/reset-password");
