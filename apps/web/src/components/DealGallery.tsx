@@ -22,20 +22,61 @@ export default function DealGallery({
   isHot,
   isPopular
 }: DealGalleryProps) {
-  // Consolidate images and remove duplicates/empty strings
   const allImages = Array.from(new Set([primaryImage, ...additionalImages])).filter(Boolean);
-  const [activeImage, setActiveImage] = useState(allImages[0] || "");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+
+  const activeImage = allImages[currentIndex] || "";
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && currentIndex < allImages.length - 1) {
+      setCurrentIndex(curr => curr + 1);
+    }
+    if (isRightSwipe && currentIndex > 0) {
+      setCurrentIndex(curr => curr - 1);
+    }
+    
+    // Reset
+    setTouchStart(0);
+    setTouchEnd(0);
+  };
 
   return (
-    <div className="lg:col-span-5 p-4 lg:p-6 bg-gray-50/50 relative">
+    <div className="lg:col-span-5 p-0 md:p-4 lg:p-6 bg-gray-50/50 relative">
       {/* Main Image View */}
-      <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg bg-white group cursor-zoom-in relative">
+      <div 
+        className="aspect-[4/3] md:rounded-2xl overflow-hidden md:shadow-lg bg-white group cursor-zoom-in relative select-none"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <DealImage 
           src={activeImage} 
-          alt={title}
+          alt={`${title} - image ${currentIndex + 1}`}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
           fallbackIconSize={60}
         />
+        
+        {/* Mobile Image Counter (Pill) */}
+        {allImages.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full md:hidden z-20 pointer-events-none">
+            {currentIndex + 1} / {allImages.length}
+          </div>
+        )}
         
         {/* Badges Overlay */}
         <div className="absolute top-4 left-4 flex flex-col gap-2 z-10 pointer-events-none">
@@ -78,14 +119,14 @@ export default function DealGallery({
       
       {/* Thumbnails Gallery */}
       {allImages.length > 1 && (
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none px-4 md:px-0">
           {allImages.map((img, i) => (
             <button 
               key={i} 
               type="button"
-              onClick={() => setActiveImage(img)}
+              onClick={() => setCurrentIndex(i)}
               className={`w-16 h-16 rounded-xl border-2 shadow-sm overflow-hidden flex-shrink-0 cursor-pointer transition-all ${
-                activeImage === img ? "border-[var(--primary)] scale-105" : "border-white opacity-50 hover:opacity-100"
+                currentIndex === i ? "border-[var(--primary)] scale-105" : "border-white opacity-50 hover:opacity-100"
               }`}
             >
               <img src={img} className="w-full h-full object-cover" alt={`${title} - image ${i + 1}`} />

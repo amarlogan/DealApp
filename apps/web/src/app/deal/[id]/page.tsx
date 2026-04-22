@@ -184,9 +184,9 @@ export default async function DealDetailPage({
 
   return (
     <div className="pb-12 min-h-screen bg-gray-50/50 animate-in fade-in duration-700">
-      <div className="max-w-6xl mx-auto px-4 pt-8 space-y-8">
+      <div className="max-w-6xl mx-auto md:px-4 pt-4 md:pt-8 space-y-4 md:space-y-8">
         {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 overflow-x-auto whitespace-nowrap pb-1 scrollbar-none">
+        <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 overflow-x-auto whitespace-nowrap pb-1 scrollbar-none px-4 md:px-0">
           <Link href="/" className="hover:text-[var(--primary)] transition-colors">Home</Link>
           <ChevronRight size={10} />
           <Link href={`/category/${deal.category_id}`} className="hover:text-[var(--primary)] transition-colors capitalize">{deal.category_id}</Link>
@@ -195,7 +195,7 @@ export default async function DealDetailPage({
         </nav>
 
         {/* Main Hero Card */}
-        <div className="bg-white rounded-[24px] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden">
+        <div className="bg-white md:rounded-[24px] md:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] border-y md:border-x border-gray-100 overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-12 shrink-layout">
             
             {/* Left: Premium Image Section (5 cols) */}
@@ -210,7 +210,7 @@ export default async function DealDetailPage({
             />
 
             {/* Right: Content Section (7 cols) */}
-            <div className="lg:col-span-7 p-6 lg:p-10 flex flex-col">
+            <div className="lg:col-span-7 p-5 md:p-6 lg:p-10 flex flex-col">
               <div className="flex items-center gap-3 mb-4">
                 <span className={`merchant-badge ${merchant.cls}`}>
                   {merchant.label}
