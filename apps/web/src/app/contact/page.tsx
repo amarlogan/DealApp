@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Mail, Send, ChevronRight, CheckCircle2, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 export default function ContactPage() {
   const [form, setForm] = useState({
@@ -14,9 +15,16 @@ export default function ContactPage() {
 
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaToken) {
+      setStatus("error");
+      setErrorMsg("Please complete the security check (CAPTCHA).");
+      return;
+    }
+
     setStatus("loading");
     setErrorMsg("");
 
@@ -24,7 +32,7 @@ export default function ContactPage() {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, captchaToken }),
       });
 
       if (!res.ok) {
@@ -143,6 +151,15 @@ export default function ContactPage() {
                 {errorMsg}
               </div>
             )}
+
+            {/* CAPTCHA Widget */}
+            <div className="flex justify-center py-2 min-h-[65px]">
+              <Turnstile 
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"} 
+                onSuccess={(token) => setCaptchaToken(token)}
+                options={{ theme: "light" }}
+              />
+            </div>
 
             <button 
               type="submit"
