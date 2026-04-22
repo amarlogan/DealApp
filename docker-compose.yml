@@ -36,7 +36,8 @@ services:
     networks:
       - supabase_default
     environment:
-      - RELAY_NETWORKS=172.16.0.0/12:192.168.0.0/16:10.0.0.0/8
+      - RELAY_NETWORKS=0.0.0.0/0
+      - DOMAIN=huntmydeal.com
 
 
 networks:
