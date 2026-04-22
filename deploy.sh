@@ -146,24 +146,15 @@ if [[ -f "$SUPABASE_ENV" ]]; then
     fi
   }
 
-  # Helper function to delete .env values
-  delete_env_var() {
-    local key=$1
-    local file=$2
-    sed -i "s|^${key}=.*||" "$file"
-    # Remove any empty lines left behind
-    sed -i '/^$/d' "$file"
-  }
 
-  # Use the container name for inter-container communication
 
   SMTP_HOST="huntmydeal-smtp"
   success "Using internal container name: $SMTP_HOST"
 
   set_env_var "GOTRUE_SMTP_HOST" "$SMTP_HOST" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_PORT" "2500" "$SUPABASE_ENV"
-  delete_env_var "GOTRUE_SMTP_USER" "$SUPABASE_ENV"
-  delete_env_var "GOTRUE_SMTP_PASS" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_SMTP_USER" "" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_SMTP_PASS" "" "$SUPABASE_ENV"
 
 
   set_env_var "GOTRUE_MAILER_AUTOCONFIRM" "false" "$SUPABASE_ENV"
