@@ -34,9 +34,9 @@ services:
     container_name: huntmydeal-smtp
     restart: always
     ports:
-      - "25:25"
-      - "587:25"
-      - "2500:25"
+      - "25:2500"
+      - "587:2500"
+      - "2500:2500"
       - "8025:8025"
 
     networks:
@@ -46,7 +46,7 @@ services:
     environment:
       - MP_SMTP_AUTH_ACCEPT_ANY=1
       - MP_SMTP_AUTH_ALLOW_INSECURE=1
-      - MP_SMTP_BIND_ADDR=0.0.0.0:25
+      - MP_SMTP_BIND_ADDR=0.0.0.0:2500
 
 
 networks:
