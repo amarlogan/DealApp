@@ -37,7 +37,9 @@ services:
       - "25:25"
       - "8025:8025"
     networks:
-      - supabase_default
+      supabase_default:
+        aliases:
+          - supabase-mail
     environment:
       - MP_SMTP_AUTH_ACCEPT_ANY=1
       - MP_SMTP_AUTH_ALLOW_INSECURE=1
