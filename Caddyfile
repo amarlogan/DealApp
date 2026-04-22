@@ -13,24 +13,16 @@ srv1603188.hstgr.cloud {
 
 # HuntMyDeal Production App
 huntmydeal.com, www.huntmydeal.com {
-    # Proxy Supabase API paths to Kong
-    handle /auth/* {
-        reverse_proxy kong:8000
-    }
-    handle /rest/* {
-        reverse_proxy kong:8000
-    }
-    handle /storage/* {
-        reverse_proxy kong:8000
-    }
+    # Direct proxies for Supabase (Must come before the main app proxy)
+    reverse_proxy /auth/* kong:8000
+    reverse_proxy /rest/* kong:8000
+    reverse_proxy /storage/* kong:8000
 
+    # Everything else goes to the Next.js app
+    reverse_proxy huntmydeal-web:3000
 
-    # Proxy everything else to the Next.js app
-    handle {
-        reverse_proxy huntmydeal-web:3000
-    }
-    
     header {
+
 
         Strict-Transport-Security "max-age=31536000;"
         X-Content-Type-Options nosniff
