@@ -152,3 +152,8 @@ The "Top Deals Today" section is special and is filtered dynamically in `apps/we
 
 ### 4. Updating Limits
 If you notice sections are empty, ensure the global fetch limit in `apps/web/src/app/page.tsx` is sufficient (currently set to 200) to cover the varied categories in your `landing_sections`.
+
+
+Cloudflair
+Site Kye : 0x4AAAAAADA5XW3bosHkBD3I
+Secret key : 0x4AAAAAADA5XWqW5rvsLipM0Sq5uUh8Z2E
