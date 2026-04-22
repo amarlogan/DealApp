@@ -29,6 +29,16 @@ services:
       - webproxy
       - supabase_default
 
+  smtp:
+    image: namshi/smtp
+    container_name: huntmydeal-smtp
+    restart: always
+    networks:
+      - supabase_default
+    environment:
+      - RELAY_NETWORKS=172.16.0.0/12:192.168.0.0/16:10.0.0.0/8
+
+
 networks:
   webproxy:
     external: true
