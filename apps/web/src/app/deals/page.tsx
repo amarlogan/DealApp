@@ -53,9 +53,14 @@ export default async function DealsPage({
     .limit(24)
     .order("created_at", { ascending: false });
 
+  const enrichedDeals = (dealsData || []).map((deal: any) => ({
+    ...deal,
+    score: (deal.upvotes || 0) - (deal.downvotes || 0)
+  }));
+
   return (
     <DealsClient 
-      initialDeals={dealsData || []} 
+      initialDeals={enrichedDeals as any} 
       favoriteIds={favoriteIds}
       initialCategory={category}
       initialTag={tag}
