@@ -155,7 +155,7 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   SMTP_USER="support@huntmydeal.com"
   
   # IMPORTANT: You must edit ../supabase/docker/.env on your server and put your REAL email password here
-  SMTP_PASS="YOUR_EMAIL_PASSWORD_HERE"
+  SMTP_PASS="Nakhshikha@14"
 
   success "Configuring Supabase to use official external SMTP: $SMTP_HOST"
 
