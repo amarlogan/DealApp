@@ -155,7 +155,7 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "SMTP_PORT" "25" "$SUPABASE_ENV"
   set_env_var "SMTP_USER" "" "$SUPABASE_ENV"
   set_env_var "SMTP_PASS" "" "$SUPABASE_ENV"
-  set_env_var "SMTP_ADMIN_EMAIL" "noreply@huntmydeal.com" "$SUPABASE_ENV"
+  set_env_var "SMTP_ADMIN_EMAIL" "support@huntmydeal.com" "$SUPABASE_ENV"
   set_env_var "SMTP_SENDER_NAME" "HuntMyDeal" "$SUPABASE_ENV"
 
   # Also set the direct GOTRUE vars just to be absolutely bulletproof
