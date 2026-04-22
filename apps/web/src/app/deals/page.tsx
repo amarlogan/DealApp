@@ -6,9 +6,10 @@ export const revalidate = 60; // Refresh more frequently than home
 export default async function DealsPage({
   searchParams
 }: {
-  searchParams: Promise<{ category?: string; tag?: string; season?: string }>;
+  searchParams: Promise<{ category?: string; tag?: string; season?: string; featured?: string }>;
 }) {
-  const { category, tag, season } = await searchParams;
+  const { category, tag, season, featured } = await searchParams;
+  const isFeatured = featured === "true";
   const supabaseAdmin = createSupabaseAdmin();
   const supabaseServer = await createSupabaseServerClient();
   
@@ -58,6 +59,9 @@ export default async function DealsPage({
     }
   }
   if (season) query = query.eq("deal_seasons.season_id", season);
+  if (isFeatured) {
+    query = query.or("is_popular.eq.true,discount_percentage.gte.30");
+  }
 
   const { data: dealsData } = await query
     .limit(24)
@@ -76,6 +80,7 @@ export default async function DealsPage({
       initialTag={tag}
       initialSeason={season}
       initialSeasonName={seasonName}
+      initialFeatured={isFeatured}
     />
   );
 }
