@@ -2,21 +2,34 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 
 export default function AuthListener() {
   const router = useRouter();
+  const sb = createClient();
 
   useEffect(() => {
-    const handleHash = () => {
+    const handleAuth = async () => {
+      const url = new URL(window.location.href);
       const hash = window.location.hash;
+      const code = url.searchParams.get("code");
+
+      // Handle Hash (Implicit Flow)
       if (hash.includes("type=recovery")) {
-        // We MUST preserve the hash so Supabase can see the tokens on the next page
         window.location.replace("/reset-password" + hash);
+        return;
+      }
+
+      // Handle Code (PKCE Flow)
+      if (code && url.pathname === "/auth/callback") {
+        const { error } = await sb.auth.exchangeCodeForSession(code);
+        if (!error) {
+          router.push("/reset-password");
+        }
       }
     };
 
-    // Check on mount
-    handleHash();
+    handleAuth();
 
     // Also check on hash changes
     window.addEventListener("hashchange", handleHash);
