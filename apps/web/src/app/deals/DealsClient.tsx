@@ -269,7 +269,7 @@ export default function DealsClient({
         <div className="py-20 flex flex-col items-center gap-6">
           {autoScrollCount >= 5 ? (
             <button 
-              onClick={loadMoreDeals}
+              onClick={() => loadMoreDeals()}
               disabled={loading}
               className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-12 py-5 rounded-3xl font-black shadow-2xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center gap-3"
             >

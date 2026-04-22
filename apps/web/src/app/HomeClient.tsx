@@ -611,7 +611,7 @@ export default function HomeClient({
       {hasMore && (
         <div className="py-20 flex flex-col items-center gap-6">
           {autoScrollCount >= 5 ? (
-            <button onClick={loadMoreDeals} disabled={loading} className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white w-full py-5 rounded-3xl font-black shadow-2xl transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3">
+            <button onClick={() => loadMoreDeals()} disabled={loading} className="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white w-full py-5 rounded-3xl font-black shadow-2xl transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3">
               {loading ? (
                 <>
                   <div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" />
