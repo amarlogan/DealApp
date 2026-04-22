@@ -153,7 +153,7 @@ export default function DealCard({
           {/* Discount pill */}
           {deal.discount_percentage > 0 && (
             <span className="bg-[var(--primary)] text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">
-              {deal.discount_percentage}% OFF
+              {deal.discount_percentage}%
             </span>
           )}
         </div>
