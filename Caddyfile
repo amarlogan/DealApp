@@ -14,15 +14,16 @@ srv1603188.hstgr.cloud {
 # HuntMyDeal Production App
 huntmydeal.com, www.huntmydeal.com {
     # Proxy Supabase API paths to Kong
-    handle_path /auth/* {
+    handle /auth/* {
         reverse_proxy kong:8000
     }
-    handle_path /rest/* {
+    handle /rest/* {
         reverse_proxy kong:8000
     }
-    handle_path /storage/* {
+    handle /storage/* {
         reverse_proxy kong:8000
     }
+
 
     # Proxy everything else to the Next.js app
     handle {
