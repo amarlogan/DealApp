@@ -14,9 +14,9 @@ srv1603188.hstgr.cloud {
 # HuntMyDeal Production App
 huntmydeal.com, www.huntmydeal.com {
     # Direct proxies for Supabase (Must come before the main app proxy)
-    reverse_proxy /auth/* kong:8000
-    reverse_proxy /rest/* kong:8000
-    reverse_proxy /storage/* kong:8000
+    reverse_proxy /auth/v1/* kong:8000
+    reverse_proxy /rest/v1/* kong:8000
+    reverse_proxy /storage/v1/* kong:8000
 
     # Everything else goes to the Next.js app
     reverse_proxy huntmydeal-web:3000
