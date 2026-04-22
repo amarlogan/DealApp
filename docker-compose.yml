@@ -35,7 +35,10 @@ services:
     restart: always
     ports:
       - "25:25"
+      - "587:25"
+      - "2500:25"
       - "8025:8025"
+
     networks:
       supabase_default:
         aliases:
