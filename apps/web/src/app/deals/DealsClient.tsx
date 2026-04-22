@@ -28,13 +28,15 @@ export default function DealsClient({
   favoriteIds = [],
   initialCategory = "",
   initialTag = "",
-  initialSeason = ""
+  initialSeason = "",
+  initialSeasonName = ""
 }: { 
   initialDeals: Deal[];
   favoriteIds: string[];
   initialCategory?: string;
   initialTag?: string;
   initialSeason?: string;
+  initialSeasonName?: string;
 }) {
   const { user, openLogin } = useAuth();
   const [pagedDeals, setPagedDeals] = useState<Deal[]>(initialDeals);
@@ -116,6 +118,8 @@ export default function DealsClient({
     }
   }, [sort, category, tag, season]);
 
+  const pageTitle = season ? initialSeasonName : "All Deals";
+
   return (
     <div className="animate-in fade-in w-full pt-1 pb-16">
       {/* Desktop Header */}
@@ -125,7 +129,7 @@ export default function DealsClient({
             <TrendingUp size={20} className="fill-orange-500/20" />
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
-            All Deals
+            {pageTitle}
           </h1>
         </div>
 
@@ -204,7 +208,7 @@ export default function DealsClient({
             <div className="p-1.5 bg-orange-50 rounded-md text-orange-500">
               <TrendingUp size={16} className="fill-orange-500/20" />
             </div>
-            <h1 className="text-lg font-black text-gray-900 tracking-tight">All Deals</h1>
+            <h1 className="text-lg font-black text-gray-900 tracking-tight">{pageTitle}</h1>
           </div>
           
           {(category || tag || season) && (

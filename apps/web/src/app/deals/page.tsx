@@ -12,6 +12,16 @@ export default async function DealsPage({
   const supabaseAdmin = createSupabaseAdmin();
   const supabaseServer = await createSupabaseServerClient();
   
+  let seasonName = "";
+  if (season) {
+    const { data: sData } = await supabaseAdmin
+      .from("seasons")
+      .select("name")
+      .eq("id", season)
+      .single();
+    if (sData) seasonName = sData.name;
+  }
+  
   // 1. Fetch User Session (to sync favorite status)
   const { data: { user } } = await supabaseServer.auth.getUser();
   let favoriteIds: string[] = [];
@@ -65,6 +75,7 @@ export default async function DealsPage({
       initialCategory={category}
       initialTag={tag}
       initialSeason={season}
+      initialSeasonName={seasonName}
     />
   );
 }
