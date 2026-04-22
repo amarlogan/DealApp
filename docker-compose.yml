@@ -29,20 +29,6 @@ services:
       - webproxy
       - supabase_default
 
-  smtp:
-    image: namshi/smtp
-    container_name: huntmydeal-smtp
-    hostname: huntmydeal.com
-    restart: always
-    ports:
-      - "25:25"
-    networks:
-      supabase_default:
-        aliases:
-          - supabase-mail
-    environment:
-      - RELAY_NETWORKS=172.16.0.0/12:192.168.0.0/16:10.0.0.0/8
-      - DOMAIN=huntmydeal.com
 
 
 networks:

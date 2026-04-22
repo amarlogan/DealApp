@@ -148,21 +148,29 @@ if [[ -f "$SUPABASE_ENV" ]]; then
 
 
 
-  SMTP_HOST="huntmydeal-smtp"
-  success "Using internal container name: $SMTP_HOST"
+  # Use Official Hostinger SMTP (or any external provider)
+  # This completely bypasses the VPS IP blocks!
+  SMTP_HOST="smtp.hostinger.com"
+  SMTP_PORT="465"
+  SMTP_USER="support@huntmydeal.com"
+  
+  # IMPORTANT: You must edit ../supabase/docker/.env on your server and put your REAL email password here
+  SMTP_PASS="YOUR_EMAIL_PASSWORD_HERE"
+
+  success "Configuring Supabase to use official external SMTP: $SMTP_HOST"
 
   set_env_var "SMTP_HOST" "$SMTP_HOST" "$SUPABASE_ENV"
-  set_env_var "SMTP_PORT" "25" "$SUPABASE_ENV"
-  set_env_var "SMTP_USER" "" "$SUPABASE_ENV"
-  set_env_var "SMTP_PASS" "" "$SUPABASE_ENV"
+  set_env_var "SMTP_PORT" "$SMTP_PORT" "$SUPABASE_ENV"
+  set_env_var "SMTP_USER" "$SMTP_USER" "$SUPABASE_ENV"
+  set_env_var "SMTP_PASS" "$SMTP_PASS" "$SUPABASE_ENV"
   set_env_var "SMTP_ADMIN_EMAIL" "support@huntmydeal.com" "$SUPABASE_ENV"
   set_env_var "SMTP_SENDER_NAME" "HuntMyDeal" "$SUPABASE_ENV"
 
   # Also set the direct GOTRUE vars just to be absolutely bulletproof
   set_env_var "GOTRUE_SMTP_HOST" "$SMTP_HOST" "$SUPABASE_ENV"
-  set_env_var "GOTRUE_SMTP_PORT" "25" "$SUPABASE_ENV"
-  set_env_var "GOTRUE_SMTP_USER" "" "$SUPABASE_ENV"
-  set_env_var "GOTRUE_SMTP_PASS" "" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_SMTP_PORT" "$SMTP_PORT" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_SMTP_USER" "$SMTP_USER" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_SMTP_PASS" "$SMTP_PASS" "$SUPABASE_ENV"
 
 
   set_env_var "GOTRUE_MAILER_AUTOCONFIRM" "false" "$SUPABASE_ENV"
