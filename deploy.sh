@@ -146,7 +146,19 @@ if [[ -f "$SUPABASE_ENV" ]]; then
     fi
   }
 
-  set_env_var "GOTRUE_SMTP_HOST" "srv1603188.hstgr.cloud" "$SUPABASE_ENV"
+  # Dynamically find the gateway IP for the supabase_default network
+  info "Discovering Docker gateway IP..."
+  GATEWAY_IP=$(docker network inspect supabase_default -f '{{range .IPAM.Config}}{{.Gateway}}{{end}}' 2>/dev/null || echo "")
+  
+  if [[ -z "$GATEWAY_IP" ]]; then
+    warn "Could not discover supabase_default gateway. Falling back to hostname."
+    SMTP_HOST="srv1603188.hstgr.cloud"
+  else
+    SMTP_HOST="$GATEWAY_IP"
+    success "Discovered gateway IP: $SMTP_HOST"
+  fi
+
+  set_env_var "GOTRUE_SMTP_HOST" "$SMTP_HOST" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_PORT" "25" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_USER" "" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_PASS" "" "$SUPABASE_ENV"
