@@ -21,21 +21,33 @@ export default function ResetPasswordPage() {
     const rescueSession = async () => {
       setIsVerifying(true);
       try {
+        const url = new URL(window.location.href);
         const hash = window.location.hash.substring(1);
         const search = window.location.search.substring(1);
         const params = new URLSearchParams(hash || search);
         
         const accessToken = params.get("access_token");
         const refreshToken = params.get("refresh_token");
+        const code = url.searchParams.get("code") || params.get("code");
 
         if (accessToken && refreshToken) {
-          console.log("ResetPage: Rescue tokens found! Establishing session...");
+          console.log("ResetPage: Implicit tokens found! Establishing session...");
           const { error: sessionErr } = await sb.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           });
           if (sessionErr) throw sessionErr;
-          console.log("ResetPage: Session rescued!");
+        } else if (code) {
+          console.log("ResetPage: PKCE code found! Exchanging...");
+          const { error: exchangeErr } = await sb.auth.exchangeCodeForSession(code);
+          if (exchangeErr) {
+            // If PKCE fails, it might be because the verifier is missing.
+            // We'll show a more specific error.
+            if (exchangeErr.message.includes("verifier")) {
+              throw new Error("Security verification failed. This usually happens if you open the link in a different browser. Please use the same browser you used to request the link, or try again.");
+            }
+            throw exchangeErr;
+          }
         } else {
           // Check if we already have a session
           const { data } = await sb.auth.getSession();
@@ -45,7 +57,7 @@ export default function ResetPasswordPage() {
         }
       } catch (err: any) {
         console.error("ResetPage: Rescue failed", err);
-        setError("Security check failed. Please try requesting a new reset link.");
+        setError(err.message || "Security check failed. Please try requesting a new reset link.");
       } finally {
         setIsVerifying(false);
       }
