@@ -179,6 +179,10 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "GOTRUE_MAILER_AUTOCONFIRM" "false" "$SUPABASE_ENV"
   set_env_var "GOTRUE_MAILER_OTP_EXP" "86400" "$SUPABASE_ENV"
   set_env_var "GOTRUE_MAILER_EXTERNAL_HOSTS" "huntmydeal.com,www.huntmydeal.com,srv1603188.hstgr.cloud" "$SUPABASE_ENV"
+  
+  # Google OAuth
+  set_env_var "GOTRUE_EXTERNAL_GOOGLE_ENABLED" "true" "$SUPABASE_ENV"
+  # Note: Client ID and Secret should be set in your VPS environment or added here if you have them.
 
   info "Final Supabase Config:"
   echo "  - Host: $SMTP_HOST"
