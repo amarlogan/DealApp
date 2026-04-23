@@ -201,7 +201,7 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   # Restart Supabase Auth to apply SMTP and OAuth changes
   info "Restarting Supabase Auth..."
   SUPABASE_DIR=$(dirname "$SUPABASE_ENV")
-  (cd "$SUPABASE_DIR" && docker compose up -d auth)
+  (cd "$SUPABASE_DIR" && COMPOSE_IGNORE_ORPHANS=True docker compose up -d auth)
 
   
   info "Verifying final container environment..."
