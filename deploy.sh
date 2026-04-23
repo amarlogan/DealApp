@@ -181,9 +181,15 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "GOTRUE_MAILER_EXTERNAL_HOSTS" "huntmydeal.com,www.huntmydeal.com,srv1603188.hstgr.cloud" "$SUPABASE_ENV"
   
   # Google OAuth (Keys should be set as env vars on the VPS: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
-  set_env_var "GOTRUE_EXTERNAL_GOOGLE_ENABLED" "true" "$SUPABASE_ENV"
-  set_env_var "GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_ID" "$SUPABASE_ENV"
-  set_env_var "GOTRUE_EXTERNAL_GOOGLE_SECRET" "$GOOGLE_CLIENT_SECRET" "$SUPABASE_ENV"
+  if [ -n "$GOOGLE_CLIENT_ID" ] && [ -n "$GOOGLE_CLIENT_SECRET" ]; then
+    info "Enabling Google OAuth..."
+    set_env_var "GOTRUE_EXTERNAL_GOOGLE_ENABLED" "true" "$SUPABASE_ENV"
+    set_env_var "GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_ID" "$SUPABASE_ENV"
+    set_env_var "GOTRUE_EXTERNAL_GOOGLE_SECRET" "$GOOGLE_CLIENT_SECRET" "$SUPABASE_ENV"
+  else
+    warn "Google OAuth keys not found in environment. Google login will be disabled."
+    set_env_var "GOTRUE_EXTERNAL_GOOGLE_ENABLED" "false" "$SUPABASE_ENV"
+  fi
 
   info "Final Supabase Config:"
   echo "  - Host: $SMTP_HOST"
