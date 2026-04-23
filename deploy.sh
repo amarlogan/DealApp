@@ -198,15 +198,10 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   echo "  - TLS:  false"
   echo "  - Site: https://huntmydeal.com"
   
-  # Restart Supabase services to apply changes
+  # Restart Supabase Auth to apply SMTP and OAuth changes
   info "Restarting Supabase Auth..."
   SUPABASE_DIR=$(dirname "$SUPABASE_ENV")
   (cd "$SUPABASE_DIR" && docker compose up -d auth)
-  
-  if [ -f "Caddyfile" ]; then
-    cp Caddyfile "$SUPABASE_DIR/Caddyfile"
-    (cd "$SUPABASE_DIR" && docker compose up -d caddy 2>/dev/null || docker compose up -d supabase-caddy)
-  fi
 
   
   info "Verifying final container environment..."
