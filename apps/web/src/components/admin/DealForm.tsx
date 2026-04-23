@@ -96,9 +96,14 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
 
   // Automatically calculate discount percentage
   useEffect(() => {
-    if (formData.original_price > 0) {
-      const discount = Math.round(((formData.original_price - formData.current_price) / formData.original_price) * 100);
+    const current = formData.current_price || 0;
+    const original = formData.original_price || 0;
+    
+    if (original > 0 && !isNaN(current) && !isNaN(original)) {
+      const discount = Math.round(((original - current) / original) * 100);
       setFormData(prev => ({ ...prev, discount_percentage: Math.max(0, discount) }));
+    } else {
+      setFormData(prev => ({ ...prev, discount_percentage: 0 }));
     }
   }, [formData.current_price, formData.original_price]);
 
@@ -108,9 +113,13 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
 
     // Client-side guard rails
     const localErrors = [];
-    if (formData.current_price > formData.original_price) {
+    
+    if (isNaN(formData.current_price) || isNaN(formData.original_price)) {
+      localErrors.push("Please enter valid numeric prices.");
+    } else if (formData.current_price > formData.original_price) {
       localErrors.push("GUARD RAIL: Current price cannot be higher than original price.");
     }
+    
     if (!formData.title) localErrors.push("Title is required.");
     if (!formData.external_url) localErrors.push("Product URL is required.");
 
@@ -156,7 +165,10 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
             type="number"
             step="0.01"
             value={formData.current_price}
-            onChange={(e) => setFormData({ ...formData, current_price: parseFloat(e.target.value) })}
+            onChange={(e) => {
+              const val = e.target.value === "" ? 0 : parseFloat(e.target.value);
+              setFormData({ ...formData, current_price: val });
+            }}
             className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-black text-[#53A318] focus:ring-2 focus:ring-[#53A318] transition-all"
           />
         </div>
@@ -168,7 +180,10 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
             type="number"
             step="0.01"
             value={formData.original_price}
-            onChange={(e) => setFormData({ ...formData, original_price: parseFloat(e.target.value) })}
+            onChange={(e) => {
+              const val = e.target.value === "" ? 0 : parseFloat(e.target.value);
+              setFormData({ ...formData, original_price: val });
+            }}
             className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-semibold text-gray-400 focus:ring-2 focus:ring-[#53A318] transition-all"
           />
         </div>
