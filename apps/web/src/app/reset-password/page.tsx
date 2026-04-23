@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Lock, Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase";
 
 export default function ResetPasswordPage() {
@@ -14,61 +14,75 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(true);
 
-  // Auth Booster: Manual Override
+  // Auth Rescue: Extract tokens from URL (Hash or Query)
   useEffect(() => {
-    const handleManualAuth = async () => {
-      const hash = window.location.hash.substring(1);
-      const params = new URLSearchParams(hash);
-      const accessToken = params.get("access_token");
-      const refreshToken = params.get("refresh_token");
+    const rescueSession = async () => {
+      setIsVerifying(true);
+      try {
+        const hash = window.location.hash.substring(1);
+        const search = window.location.search.substring(1);
+        const params = new URLSearchParams(hash || search);
+        
+        const accessToken = params.get("access_token");
+        const refreshToken = params.get("refresh_token");
 
-      if (accessToken && refreshToken) {
-        console.log("ResetPage: Manual tokens detected! Forcing session...");
-        const { error } = await sb.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-        if (!error) {
-          console.log("ResetPage: Manual session established!");
-          setError(null);
+        if (accessToken && refreshToken) {
+          console.log("ResetPage: Rescue tokens found! Establishing session...");
+          const { error: sessionErr } = await sb.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (sessionErr) throw sessionErr;
+          console.log("ResetPage: Session rescued!");
         } else {
-          console.error("ResetPage: Manual session failed", error);
+          // Check if we already have a session
+          const { data } = await sb.auth.getSession();
+          if (!data.session) {
+            console.warn("ResetPage: No session and no tokens found in URL.");
+          }
         }
-      } else {
-        // Fallback to checking existing session
-        const { data } = await sb.auth.getSession();
-        if (data.session) {
-          setError(null);
-        }
+      } catch (err: any) {
+        console.error("ResetPage: Rescue failed", err);
+        setError("Security check failed. Please try requesting a new reset link.");
+      } finally {
+        setIsVerifying(false);
       }
     };
 
-    handleManualAuth();
+    rescueSession();
   }, [sb.auth]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     setError(null);
+    setSuccess(null);
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
+    try {
+      // Final check/refresh of session right before update
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) {
+        throw new Error("Your security session has expired. Please click the link in your email again.");
+      }
 
-    const { error: err } = await sb.auth.updateUser({ password });
+      const { error: err } = await sb.auth.updateUser({ password });
+      if (err) throw err;
 
-    if (err) {
+      setSuccess("Password updated successfully! You can now sign in with your new password.");
+      setTimeout(() => router.push("/"), 3000);
+    } catch (err: any) {
       setError(err.message);
-    } else {
-      setSuccess("Password updated successfully! Redirecting to login...");
-      setTimeout(() => {
-        router.push("/");
-      }, 2000);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -80,10 +94,22 @@ export default function ResetPasswordPage() {
           <div className="mb-6 text-center">
             <div className="text-3xl mb-1">🔐</div>
             <h2 className="text-2xl font-black text-gray-900">Set New Password</h2>
-            <p className="text-gray-500 text-sm mt-1">
+            <p className="text-gray-500 text-sm mt-2">
               Please enter your new password below.
             </p>
           </div>
+
+          {isVerifying ? (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-3 text-blue-700 text-sm">
+              <Loader2 className="animate-spin" size={16} />
+              <span>Verifying security session...</span>
+            </div>
+          ) : !error && !success ? (
+            <div className="mb-6 p-4 bg-green-50 border border-green-100 rounded-xl flex items-center gap-3 text-green-700 text-sm font-medium">
+              <ShieldCheck size={16} />
+              <span>Security session active. You can now update your password.</span>
+            </div>
+          ) : null}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
