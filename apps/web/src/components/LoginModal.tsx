@@ -39,7 +39,7 @@ export default function LoginModal({ onClose }: { onClose: () => void }) {
     } else {
       // mode === "forgot"
       const { error: err } = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/#type=recovery`,
+        redirectTo: `${window.location.origin}/reset-password`,
       });
       if (err) setError(err.message);
       else {
