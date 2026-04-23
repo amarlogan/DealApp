@@ -199,12 +199,13 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   echo "  - Site: https://huntmydeal.com"
   
   # Restart Supabase services to apply changes
-  info "Restarting Supabase Auth and Caddy..."
-  (cd ../supabase/docker && docker compose up -d auth)
+  info "Restarting Supabase Auth..."
+  SUPABASE_DIR=$(dirname "$SUPABASE_ENV")
+  (cd "$SUPABASE_DIR" && docker compose up -d auth)
   
   if [ -f "Caddyfile" ]; then
-    cp Caddyfile ../supabase/docker/Caddyfile
-    (cd ../supabase/docker && docker compose up -d caddy 2>/dev/null || docker compose up -d supabase-caddy)
+    cp Caddyfile "$SUPABASE_DIR/Caddyfile"
+    (cd "$SUPABASE_DIR" && docker compose up -d caddy 2>/dev/null || docker compose up -d supabase-caddy)
   fi
 
   
