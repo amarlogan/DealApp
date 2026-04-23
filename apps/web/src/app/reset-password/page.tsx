@@ -17,15 +17,15 @@ export default function ResetPasswordPage() {
 
   // Auth Booster: Ensure session is ready
   useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await sb.auth.getSession();
-      if (!data.session) {
-        console.log("ResetPage: No session yet, waiting for handshake...");
-      } else {
-        console.log("ResetPage: Session ready!");
+    const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
+      console.log("ResetPage: Auth Event:", event);
+      if (session) {
+        console.log("ResetPage: Session confirmed!");
+        setError(null); // Clear any 'missing session' errors
       }
-    };
-    checkSession();
+    });
+
+    return () => subscription.unsubscribe();
   }, [sb.auth]);
 
   const handleSubmit = async (e: React.FormEvent) => {
