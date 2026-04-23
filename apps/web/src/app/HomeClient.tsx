@@ -213,6 +213,15 @@ export default function HomeClient({
   const favSet = new Set(favoriteIds);
   const deals = initialDeals;
   const { hh, mm, ss }   = useCountdown(4, 23, 17);
+  
+  // Recovery Watcher: Force jump to reset page if recovery signal found
+  useEffect(() => {
+    if (typeof window !== "undefined" && (window.location.hash.includes("type=recovery") || window.location.hash.includes("recovery"))) {
+      console.log("HomeClient: Recovery hash found! Jumping to reset page...");
+      window.location.replace("/reset-password" + window.location.hash);
+    }
+  }, []);
+
 
   // Auto-advance hero carousel
   useEffect(() => {
