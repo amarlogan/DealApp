@@ -15,17 +15,36 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Auth Booster: Ensure session is ready
+  // Auth Booster: Manual Override
   useEffect(() => {
-    const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
-      console.log("ResetPage: Auth Event:", event);
-      if (session) {
-        console.log("ResetPage: Session confirmed!");
-        setError(null); // Clear any 'missing session' errors
-      }
-    });
+    const handleManualAuth = async () => {
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
 
-    return () => subscription.unsubscribe();
+      if (accessToken && refreshToken) {
+        console.log("ResetPage: Manual tokens detected! Forcing session...");
+        const { error } = await sb.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (!error) {
+          console.log("ResetPage: Manual session established!");
+          setError(null);
+        } else {
+          console.error("ResetPage: Manual session failed", error);
+        }
+      } else {
+        // Fallback to checking existing session
+        const { data } = await sb.auth.getSession();
+        if (data.session) {
+          setError(null);
+        }
+      }
+    };
+
+    handleManualAuth();
   }, [sb.auth]);
 
   const handleSubmit = async (e: React.FormEvent) => {
