@@ -24,16 +24,8 @@ export default function AuthListener() {
       }
 
       // Handle Code (PKCE Flow)
-      if (code) {
-        console.log("AuthWatcher: Code detected! Exchanging...");
-        const { error } = await sb.auth.exchangeCodeForSession(code);
-        if (!error) {
-          console.log("AuthWatcher: Exchange successful! Redirecting...");
-          router.push("/reset-password");
-        } else {
-          console.error("AuthWatcher: Exchange failed", error);
-        }
-      }
+      // Removed to prevent PKCE verifier missing errors across sessions.
+      // Handled manually on reset-password page.
     };
 
     handleAuth();
