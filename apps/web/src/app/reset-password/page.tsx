@@ -15,6 +15,19 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  // Auth Booster: Ensure session is ready
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await sb.auth.getSession();
+      if (!data.session) {
+        console.log("ResetPage: No session yet, waiting for handshake...");
+      } else {
+        console.log("ResetPage: Session ready!");
+      }
+    };
+    checkSession();
+  }, [sb.auth]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
