@@ -45,8 +45,8 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { action, dealId, data } = body;
-    const { season_ids, ...rawFields } = data;
+    const { action, dealId, data = {} } = body;
+    const { season_ids = [], ...rawFields } = data;
 
     // 2. STRIP NON-DB COLUMNS: Only include fields that exist in the 'deals' table
     const allowedFields = [
