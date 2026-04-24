@@ -206,9 +206,13 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   # Patch docker-compose.yml if Google OAuth variables are commented out
   info "Checking if docker-compose.yml needs Google OAuth uncommenting..."
   COMPOSE_FILE="$SUPABASE_DIR/docker-compose.yml"
-  if grep -q "#[[:space:]]*GOTRUE_EXTERNAL_GOOGLE_ENABLED" "$COMPOSE_FILE"; then
+  if grep -q "#.*GOTRUE_EXTERNAL_GOOGLE_ENABLED" "$COMPOSE_FILE"; then
     info "Uncommenting Google OAuth lines in docker-compose.yml..."
-    sed -i 's/#[[:space:]]*GOTRUE_EXTERNAL_GOOGLE/GOTRUE_EXTERNAL_GOOGLE/g' "$COMPOSE_FILE"
+    # Robustly remove the leading '#' and any following spaces for Google lines
+    sed -i '/GOTRUE_EXTERNAL_GOOGLE/s/^ *# *//' "$COMPOSE_FILE"
+    success "docker-compose.yml patched."
+  else
+    info "Google OAuth lines already uncommented in docker-compose.yml."
   fi
 
   # Restart Supabase Auth to apply SMTP and OAuth changes (Force recreate to ensure env vars are picked up)
