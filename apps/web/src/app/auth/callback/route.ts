@@ -12,5 +12,8 @@ export async function GET(req: Request) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  return NextResponse.redirect(new URL(next, process.env.NEXT_PUBLIC_BASE_URL || url.origin));
+  // Use the public base URL for redirects to avoid internal Docker addresses (0.0.0.0)
+  const base = process.env.NEXT_PUBLIC_BASE_URL || "https://huntmydeal.com";
+  
+  return NextResponse.redirect(new URL(next, base));
 }
