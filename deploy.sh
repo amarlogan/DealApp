@@ -186,6 +186,10 @@ if [[ -f "$SUPABASE_ENV" ]]; then
     set_env_var "GOTRUE_EXTERNAL_GOOGLE_ENABLED" "true" "$SUPABASE_ENV"
     set_env_var "GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_ID" "$SUPABASE_ENV"
     set_env_var "GOTRUE_EXTERNAL_GOOGLE_SECRET" "$GOOGLE_CLIENT_SECRET" "$SUPABASE_ENV"
+    # Also set legacy names just in case
+    set_env_var "GOOGLE_ENABLED" "true" "$SUPABASE_ENV"
+    set_env_var "GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_ID" "$SUPABASE_ENV"
+    set_env_var "GOOGLE_SECRET" "$GOOGLE_CLIENT_SECRET" "$SUPABASE_ENV"
   else
     warn "Google OAuth keys not found in environment. Skipping Google config update."
   fi
@@ -197,13 +201,12 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   echo "  - TLS:  false"
   echo "  - Site: https://huntmydeal.com"
   
-  # Patch docker-compose.yml if Google OAuth variables are missing from environment section
-  info "Checking if docker-compose.yml needs Google OAuth patching..."
+  # Patch docker-compose.yml if Google OAuth variables are commented out
+  info "Checking if docker-compose.yml needs Google OAuth uncommenting..."
   COMPOSE_FILE="$SUPABASE_DIR/docker-compose.yml"
-  if ! grep -q "GOTRUE_EXTERNAL_GOOGLE_ENABLED" "$COMPOSE_FILE"; then
-    info "Patching docker-compose.yml to include Google OAuth variables..."
-    # Add variables after GOTRUE_URI_ALLOW_LIST
-    sed -i '/GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}/a \      GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOTRUE_EXTERNAL_GOOGLE_ENABLED:-false}\n      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID:-}\n      GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOTRUE_EXTERNAL_GOOGLE_SECRET:-}\n      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI:-}' "$COMPOSE_FILE"
+  if grep -q "# GOTRUE_EXTERNAL_GOOGLE_ENABLED" "$COMPOSE_FILE"; then
+    info "Uncommenting Google OAuth lines in docker-compose.yml..."
+    sed -i 's/# GOTRUE_EXTERNAL_GOOGLE/GOTRUE_EXTERNAL_GOOGLE/g' "$COMPOSE_FILE"
   fi
 
   # Restart Supabase Auth to apply SMTP and OAuth changes (Force recreate to ensure env vars are picked up)
