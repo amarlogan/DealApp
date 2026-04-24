@@ -206,11 +206,11 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   # Patch docker-compose.yml if Google OAuth variables are commented out
   info "Checking if docker-compose.yml needs Google OAuth uncommenting..."
   COMPOSE_FILE="$SUPABASE_DIR/docker-compose.yml"
-  if grep -q "#.*GOTRUE_EXTERNAL_GOOGLE_ENABLED" "$COMPOSE_FILE"; then
+  if grep -q "#[[:space:]]*GOTRUE_EXTERNAL_GOOGLE_ENABLED" "$COMPOSE_FILE"; then
     info "Uncommenting Google OAuth lines in docker-compose.yml..."
-    # Robustly remove the leading '#' and any following spaces for Google lines
-    sed -i '/GOTRUE_EXTERNAL_GOOGLE/s/^ *# *//' "$COMPOSE_FILE"
-    success "docker-compose.yml patched."
+    # Precision patch: match the 6-space indentation followed by '#' and uncomment
+    sed -i 's/^[[:space:]]*#[[:space:]]*GOTRUE_EXTERNAL_GOOGLE/      GOTRUE_EXTERNAL_GOOGLE/' "$COMPOSE_FILE"
+    success "docker-compose.yml precision patched."
   else
     info "Google OAuth lines already uncommented in docker-compose.yml."
   fi
