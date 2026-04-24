@@ -29,6 +29,7 @@ interface DealFormData {
   description: string;
   season_ids: string[];
   images: string[];
+  expires_at: string | null;
 }
 
 export default function DealForm({ initialData, categories, seasons, onSave, isLoading }: DealFormProps) {
@@ -48,7 +49,8 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
     promo_code: initialData?.promo_code || "",
     description: initialData?.description || "",
     season_ids: initialData?.season_ids || [],
-    images: initialData?.images || []
+    images: initialData?.images || [],
+    expires_at: initialData?.expires_at ? new Date(initialData.expires_at).toISOString().slice(0, 16) : null
   });
 
   const [errors, setErrors] = useState<string[]>([]);
@@ -416,6 +418,18 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
             placeholder="Or type a custom badge (e.g. Clearance)"
             className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-semibold placeholder:text-gray-300 focus:ring-2 focus:ring-[#53A318] transition-all"
           />
+        </div>
+
+        {/* Expiry Date */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Deal Expiry (Optional)</label>
+          <input
+            type="datetime-local"
+            value={formData.expires_at || ""}
+            onChange={(e) => setFormData({ ...formData, expires_at: e.target.value || null })}
+            className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#53A318] transition-all"
+          />
+          <p className="text-[10px] text-gray-400 font-medium pl-1 italic">Leave blank for no expiry.</p>
         </div>
 
         <div className="flex items-center gap-6 p-4 bg-gray-100/50 rounded-2xl md:col-span-2">

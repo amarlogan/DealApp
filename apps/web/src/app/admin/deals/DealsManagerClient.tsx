@@ -163,6 +163,12 @@ export default function DealsManagerClient({
                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{deal.merchant}</span>
                           <span className="text-gray-300 text-[10px]">•</span>
                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{deal.category_id}</span>
+                          {deal.expires_at && (
+                            <>
+                              <span className="text-gray-300 text-[10px]">•</span>
+                              <span className="text-[10px] font-bold text-red-400 uppercase tracking-tighter">Expires: {new Date(deal.expires_at).toLocaleDateString()}</span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
