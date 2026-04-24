@@ -179,6 +179,7 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "GOTRUE_MAILER_AUTOCONFIRM" "false" "$SUPABASE_ENV"
   set_env_var "GOTRUE_MAILER_OTP_EXP" "86400" "$SUPABASE_ENV"
   set_env_var "GOTRUE_MAILER_EXTERNAL_HOSTS" "huntmydeal.com,www.huntmydeal.com,srv1603188.hstgr.cloud" "$SUPABASE_ENV"
+  set_env_var "ADDITIONAL_REDIRECT_URLS" "https://huntmydeal.com/*" "$SUPABASE_ENV"
   
   # Google OAuth (Keys should be set as env vars on the VPS: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
   if [[ -n "${GOOGLE_CLIENT_ID:-}" ]] && [[ -n "${GOOGLE_CLIENT_SECRET:-}" ]]; then
@@ -186,7 +187,8 @@ if [[ -f "$SUPABASE_ENV" ]]; then
     set_env_var "GOTRUE_EXTERNAL_GOOGLE_ENABLED" "true" "$SUPABASE_ENV"
     set_env_var "GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_ID" "$SUPABASE_ENV"
     set_env_var "GOTRUE_EXTERNAL_GOOGLE_SECRET" "$GOOGLE_CLIENT_SECRET" "$SUPABASE_ENV"
-    # Also set legacy names just in case
+    set_env_var "GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI" "https://huntmydeal.com/auth/v1/callback" "$SUPABASE_ENV"
+    # Also set legacy names
     set_env_var "GOOGLE_ENABLED" "true" "$SUPABASE_ENV"
     set_env_var "GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_ID" "$SUPABASE_ENV"
     set_env_var "GOOGLE_SECRET" "$GOOGLE_CLIENT_SECRET" "$SUPABASE_ENV"
@@ -204,9 +206,9 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   # Patch docker-compose.yml if Google OAuth variables are commented out
   info "Checking if docker-compose.yml needs Google OAuth uncommenting..."
   COMPOSE_FILE="$SUPABASE_DIR/docker-compose.yml"
-  if grep -q "# GOTRUE_EXTERNAL_GOOGLE_ENABLED" "$COMPOSE_FILE"; then
+  if grep -q "#[[:space:]]*GOTRUE_EXTERNAL_GOOGLE_ENABLED" "$COMPOSE_FILE"; then
     info "Uncommenting Google OAuth lines in docker-compose.yml..."
-    sed -i 's/# GOTRUE_EXTERNAL_GOOGLE/GOTRUE_EXTERNAL_GOOGLE/g' "$COMPOSE_FILE"
+    sed -i 's/#[[:space:]]*GOTRUE_EXTERNAL_GOOGLE/GOTRUE_EXTERNAL_GOOGLE/g' "$COMPOSE_FILE"
   fi
 
   # Restart Supabase Auth to apply SMTP and OAuth changes (Force recreate to ensure env vars are picked up)
