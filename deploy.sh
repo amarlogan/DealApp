@@ -197,9 +197,17 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   echo "  - TLS:  false"
   echo "  - Site: https://huntmydeal.com"
   
+  # Patch docker-compose.yml if Google OAuth variables are missing from environment section
+  info "Checking if docker-compose.yml needs Google OAuth patching..."
+  COMPOSE_FILE="$SUPABASE_DIR/docker-compose.yml"
+  if ! grep -q "GOTRUE_EXTERNAL_GOOGLE_ENABLED" "$COMPOSE_FILE"; then
+    info "Patching docker-compose.yml to include Google OAuth variables..."
+    # Add variables after GOTRUE_URI_ALLOW_LIST
+    sed -i '/GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}/a \      GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOTRUE_EXTERNAL_GOOGLE_ENABLED:-false}\n      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID:-}\n      GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOTRUE_EXTERNAL_GOOGLE_SECRET:-}\n      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI:-}' "$COMPOSE_FILE"
+  fi
+
   # Restart Supabase Auth to apply SMTP and OAuth changes (Force recreate to ensure env vars are picked up)
   info "Restarting Supabase Auth..."
-  SUPABASE_DIR=$(dirname "$SUPABASE_ENV")
   (cd "$SUPABASE_DIR" && COMPOSE_IGNORE_ORPHANS=True docker compose -p supabase up -d --force-recreate auth)
 
   
