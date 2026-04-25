@@ -1,8 +1,9 @@
-import { LayoutDashboard, Tag, ShoppingBag, Palette, Home, LogOut, ChevronRight, Users, Compass, MessageSquare } from "lucide-react";
+import { LayoutDashboard, Tag, ShoppingBag, Palette, Home, LogOut, ChevronRight, Users, Compass, MessageSquare, BarChart3 } from "lucide-react";
 import Link from "next/link";
 
 const ADMIN_NAV = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { label: "Intelligence", href: "/admin/analytics", icon: BarChart3 },
   { label: "Deals Manager", href: "/admin/deals", icon: ShoppingBag },
   { label: "Categories", href: "/admin/categories", icon: Tag },
   { label: "Top Navigation", href: "/admin/navigation", icon: Compass },
