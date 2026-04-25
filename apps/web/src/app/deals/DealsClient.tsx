@@ -236,7 +236,7 @@ export default function DealsClient({
               onChange={(e) => setCategory(e.target.value)}
               className="w-full appearance-none bg-white border border-gray-200 shadow-sm text-gray-700 text-[11px] font-bold rounded-lg pl-2 pr-6 py-2 outline-none focus:border-[var(--primary)] transition-colors capitalize"
             >
-              <option value="">Category</option>
+              <option value="">All Categories</option>
               {allCategories.map(cat => (
                  <option key={cat.id} value={cat.id}>{cat.label}</option>
               ))}

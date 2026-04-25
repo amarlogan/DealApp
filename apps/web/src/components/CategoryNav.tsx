@@ -58,13 +58,6 @@ export default function CategoryNav({ navs }: { navs: any[] }) {
         aria-label="Product categories" 
         className="flex items-center gap-2 overflow-x-auto hide-scrollbar w-full"
       >
-        <a
-          href="/deals"
-          className="shrink-0 py-1.5 px-3 text-sm font-bold whitespace-nowrap rounded-full text-gray-900 bg-gray-100 hover:bg-gray-200 transition-all flex items-center gap-1.5"
-        >
-          🔥 All Deals
-        </a>
-
         {navs.map((nav: any) => {
           const label = nav.label_override || (nav.categories?.label ?? "Unknown");
           const isHighlighted = nav.is_highlighted;
