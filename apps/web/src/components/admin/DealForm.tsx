@@ -102,7 +102,7 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
     const original = formData.original_price || 0;
     
     if (original > 0 && !isNaN(current) && !isNaN(original)) {
-      const discount = Math.round(((original - current) / original) * 100);
+      const discount = parseFloat(((original - current) / original * 100).toFixed(2));
       setFormData(prev => ({ ...prev, discount_percentage: Math.max(0, discount) }));
     } else {
       setFormData(prev => ({ ...prev, discount_percentage: 0 }));
@@ -458,7 +458,7 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
       <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
          <div className="flex items-center gap-2 text-[#53A318] bg-emerald-50 px-4 py-2 rounded-xl">
            <Percent size={16} />
-           <span className="text-xs font-black uppercase tracking-widest">Auto-Calculated Discount: {formData.discount_percentage}%</span>
+           <span className="text-xs font-black uppercase tracking-widest">Auto-Calculated Discount: {formData.discount_percentage.toFixed(2)}%</span>
          </div>
          
          <button

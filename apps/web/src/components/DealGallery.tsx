@@ -112,7 +112,7 @@ export default function DealGallery({
         {/* Discount Overlay */}
         {discountPercentage > 0 && (
           <div className="absolute top-4 right-4 bg-[#53A318] text-white font-black text-sm px-3 py-1 rounded-full shadow-md z-10 pointer-events-none">
-            {discountPercentage}%
+            {discountPercentage.toFixed(2)}%
           </div>
         )}
       </div>

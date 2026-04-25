@@ -251,10 +251,10 @@ export default async function DealDetailPage({
               <div className="flex items-center justify-between gap-6 mb-6">
                 <div className="flex items-baseline gap-2">
                   <span className="text-4xl font-black text-gray-900 tracking-tighter">
-                    ${deal.current_price.toFixed(0)}
+                    ${deal.current_price.toFixed(2)}
                   </span>
-                  <span className="text-xl text-gray-300 line-through font-bold">${deal.original_price.toFixed(0)}</span>
-                  <span className="text-sm font-black text-[var(--primary)] bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">{deal.discount_percentage}% OFF</span>
+                  <span className="text-xl text-gray-300 line-through font-bold">${deal.original_price.toFixed(2)}</span>
+                  <span className="text-sm font-black text-[var(--primary)] bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">{deal.discount_percentage.toFixed(2)}% OFF</span>
                 </div>
                 <div className="hidden sm:flex flex-col items-end">
                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Savings</span>
