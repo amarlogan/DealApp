@@ -11,6 +11,8 @@ import { createSupabaseAdmin } from "@/lib/supabase-server";
 import SearchBar from "@/components/SearchBar";
 import CategoryNav from "@/components/CategoryNav";
 import AuthListener from "@/components/AuthListener";
+import AnalyticsListener from "@/components/AnalyticsListener";
+import { Suspense } from "react";
 
 const inter  = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -70,6 +72,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Providers>
           <ThemeProvider season={activeSeason}>
             <AuthListener />
+            <Suspense fallback={null}>
+              <AnalyticsListener />
+            </Suspense>
             
             <ResponsiveShell navs={navs} activeSeason={activeSeason}>
               {children}

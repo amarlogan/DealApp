@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { trackEvent } from "@/lib/analytics";
 import { notFound } from "next/navigation";
 import { 
   ExternalLink, ArrowLeft, Shield, Truck, Tag, 
@@ -270,7 +271,7 @@ export default async function DealDetailPage({
               <div className="flex flex-col gap-3">
                 <div className="flex gap-3">
                   <a 
-                    href={deal.external_url} 
+                    href={`/api/exit?dealId=${deal.id}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="flex-1 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-black px-8 py-4 rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all text-center flex items-center justify-center gap-2"

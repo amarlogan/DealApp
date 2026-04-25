@@ -34,20 +34,25 @@ export async function GET(req: NextRequest) {
     const supabase = createSupabaseAdmin();
     const { data } = await supabase
       .from("deals")
-      .select("affiliate_url, external_url")
+      .select("affiliate_url, external_url, category_id")
       .eq("id", dealId)
       .single();
-
     // Prefer affiliate URL; fall back to direct merchant URL
     affiliateUrl = data?.affiliate_url || data?.external_url || null;
 
     // ── Log click ────────────────────────────────────────────────────────────
     if (data) {
-      await supabase.from("deal_clicks").insert({
+      // Use the analytics table for rich tracking
+      await supabase.from("site_analytics").insert({
         deal_id:    dealId,
+        event_type: "get_deal_click",
+        category_id: data.category_id,
+        path:       req.headers.get("referer") || "",
         ip_address: ip,
         user_agent: req.headers.get("user-agent") ?? "",
-        referer:    req.headers.get("referer") ?? "",
+        metadata: {
+            is_exit_redirect: true
+        }
       }).then(() => null); // fire-and-forget
     }
   } catch (err) {
