@@ -30,7 +30,8 @@ export default function DealsClient({
   initialTag = "",
   initialSeason = "",
   initialSeasonName = "",
-  initialFeatured = false
+  initialFeatured = false,
+  allCategories = []
 }: { 
   initialDeals: Deal[];
   favoriteIds: string[];
@@ -39,6 +40,7 @@ export default function DealsClient({
   initialSeason?: string;
   initialSeasonName?: string;
   initialFeatured?: boolean;
+  allCategories?: { id: string, label: string, emoji: string }[];
 }) {
   const { user, openLogin } = useAuth();
   const [pagedDeals, setPagedDeals] = useState<Deal[]>(initialDeals);
@@ -147,8 +149,8 @@ export default function DealsClient({
               className="appearance-none bg-gray-50 border border-gray-200 text-gray-900 text-[13px] font-bold rounded-full pl-4 pr-9 py-2.5 outline-none hover:border-[var(--primary)] transition-colors cursor-pointer shadow-sm capitalize"
             >
               <option value="">All Categories</option>
-              {['electronics', 'fashion', 'home', 'shoes', 'toys', 'beauty', 'sports'].map(cat => (
-                 <option key={cat} value={cat}>{cat}</option>
+              {allCategories.map(cat => (
+                 <option key={cat.id} value={cat.id}>{cat.emoji} {cat.label}</option>
               ))}
             </select>
             <ChevronDown size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
@@ -235,7 +237,9 @@ export default function DealsClient({
               className="w-full appearance-none bg-white border border-gray-200 shadow-sm text-gray-700 text-[11px] font-bold rounded-lg pl-2 pr-6 py-2 outline-none focus:border-[var(--primary)] transition-colors capitalize"
             >
               <option value="">Category</option>
-              {['electronics', 'fashion', 'home', 'shoes', 'toys', 'beauty', 'sports'].map(c => <option key={c} value={c}>{c}</option>)}
+              {allCategories.map(cat => (
+                 <option key={cat.id} value={cat.id}>{cat.label}</option>
+              ))}
             </select>
             <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>

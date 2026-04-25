@@ -63,9 +63,10 @@ export default async function DealsPage({
     query = query.or("is_popular.eq.true,discount_percentage.gte.30");
   }
 
-  const { data: dealsData } = await query
-    .limit(24)
-    .order("created_at", { ascending: false });
+  const [{ data: dealsData }, { data: categoriesData }] = await Promise.all([
+    query.limit(24).order("created_at", { ascending: false }),
+    supabaseAdmin.from("categories").select("id, label, emoji").eq("is_active", true).order("sort_order", { ascending: true })
+  ]);
 
   const enrichedDeals = (dealsData || []).map((deal: any) => ({
     ...deal,
@@ -81,6 +82,7 @@ export default async function DealsPage({
       initialSeason={season}
       initialSeasonName={seasonName}
       initialFeatured={isFeatured}
+      allCategories={categoriesData || []}
     />
   );
 }
