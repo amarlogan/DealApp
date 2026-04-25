@@ -238,7 +238,7 @@ export default function DealsClient({
             >
               <option value="">All Categories</option>
               {allCategories.map(cat => (
-                 <option key={cat.id} value={cat.id}>{cat.label}</option>
+                 <option key={cat.id} value={cat.id}>{cat.emoji} {cat.label}</option>
               ))}
             </select>
             <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
