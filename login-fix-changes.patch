@@ -1,0 +1,197 @@
+diff --git a/apps/web/src/app/admin/deals/DealsManagerClient.tsx b/apps/web/src/app/admin/deals/DealsManagerClient.tsx
+index 6c1d5dd..a7d8480 100644
+--- a/apps/web/src/app/admin/deals/DealsManagerClient.tsx
++++ b/apps/web/src/app/admin/deals/DealsManagerClient.tsx
+@@ -163,6 +163,12 @@ export default function DealsManagerClient({
+                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{deal.merchant}</span>
+                           <span className="text-gray-300 text-[10px]">•</span>
+                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{deal.category_id}</span>
++                          {deal.expires_at && (
++                            <>
++                              <span className="text-gray-300 text-[10px]">•</span>
++                              <span className="text-[10px] font-bold text-red-400 uppercase tracking-tighter">Expires: {new Date(deal.expires_at).toLocaleDateString()}</span>
++                            </>
++                          )}
+                         </div>
+                       </div>
+                     </div>
+diff --git a/apps/web/src/app/api/admin/deals/route.ts b/apps/web/src/app/api/admin/deals/route.ts
+index cb45399..be22474 100644
+--- a/apps/web/src/app/api/admin/deals/route.ts
++++ b/apps/web/src/app/api/admin/deals/route.ts
+@@ -45,8 +45,8 @@ export async function POST(req: NextRequest) {
+     }
+ 
+     const body = await req.json();
+-    const { action, dealId, data } = body;
+-    const { season_ids, ...rawFields } = data;
++    const { action, dealId, data = {} } = body;
++    const { season_ids = [], ...rawFields } = data;
+ 
+     // 2. STRIP NON-DB COLUMNS: Only include fields that exist in the 'deals' table
+     const allowedFields = [
+diff --git a/apps/web/src/app/auth/callback/route.ts b/apps/web/src/app/auth/callback/route.ts
+index b0297d7..74a20a0 100644
+--- a/apps/web/src/app/auth/callback/route.ts
++++ b/apps/web/src/app/auth/callback/route.ts
+@@ -12,5 +12,8 @@ export async function GET(req: Request) {
+     await supabase.auth.exchangeCodeForSession(code);
+   }
+ 
+-  return NextResponse.redirect(new URL(next, url.origin));
++  // Use the public base URL for redirects to avoid internal Docker addresses (0.0.0.0)
++  const base = process.env.NEXT_PUBLIC_BASE_URL || "https://huntmydeal.com";
++  
++  return NextResponse.redirect(new URL(next, base));
+ }
+diff --git a/apps/web/src/components/admin/DealForm.tsx b/apps/web/src/components/admin/DealForm.tsx
+index e653386..512eed9 100644
+--- a/apps/web/src/components/admin/DealForm.tsx
++++ b/apps/web/src/components/admin/DealForm.tsx
+@@ -29,6 +29,7 @@ interface DealFormData {
+   description: string;
+   season_ids: string[];
+   images: string[];
++  expires_at: string | null;
+ }
+ 
+ export default function DealForm({ initialData, categories, seasons, onSave, isLoading }: DealFormProps) {
+@@ -48,7 +49,8 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
+     promo_code: initialData?.promo_code || "",
+     description: initialData?.description || "",
+     season_ids: initialData?.season_ids || [],
+-    images: initialData?.images || []
++    images: initialData?.images || [],
++    expires_at: initialData?.expires_at ? new Date(initialData.expires_at).toISOString().slice(0, 16) : null
+   });
+ 
+   const [errors, setErrors] = useState<string[]>([]);
+@@ -96,9 +98,14 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
+ 
+   // Automatically calculate discount percentage
+   useEffect(() => {
+-    if (formData.original_price > 0) {
+-      const discount = Math.round(((formData.original_price - formData.current_price) / formData.original_price) * 100);
++    const current = formData.current_price || 0;
++    const original = formData.original_price || 0;
++    
++    if (original > 0 && !isNaN(current) && !isNaN(original)) {
++      const discount = Math.round(((original - current) / original) * 100);
+       setFormData(prev => ({ ...prev, discount_percentage: Math.max(0, discount) }));
++    } else {
++      setFormData(prev => ({ ...prev, discount_percentage: 0 }));
+     }
+   }, [formData.current_price, formData.original_price]);
+ 
+@@ -108,9 +115,13 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
+ 
+     // Client-side guard rails
+     const localErrors = [];
+-    if (formData.current_price > formData.original_price) {
++    
++    if (isNaN(formData.current_price) || isNaN(formData.original_price)) {
++      localErrors.push("Please enter valid numeric prices.");
++    } else if (formData.current_price > formData.original_price) {
+       localErrors.push("GUARD RAIL: Current price cannot be higher than original price.");
+     }
++    
+     if (!formData.title) localErrors.push("Title is required.");
+     if (!formData.external_url) localErrors.push("Product URL is required.");
+ 
+@@ -156,7 +167,10 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
+             type="number"
+             step="0.01"
+             value={formData.current_price}
+-            onChange={(e) => setFormData({ ...formData, current_price: parseFloat(e.target.value) })}
++            onChange={(e) => {
++              const val = e.target.value === "" ? 0 : parseFloat(e.target.value);
++              setFormData({ ...formData, current_price: val });
++            }}
+             className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-black text-[#53A318] focus:ring-2 focus:ring-[#53A318] transition-all"
+           />
+         </div>
+@@ -168,7 +182,10 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
+             type="number"
+             step="0.01"
+             value={formData.original_price}
+-            onChange={(e) => setFormData({ ...formData, original_price: parseFloat(e.target.value) })}
++            onChange={(e) => {
++              const val = e.target.value === "" ? 0 : parseFloat(e.target.value);
++              setFormData({ ...formData, original_price: val });
++            }}
+             className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-semibold text-gray-400 focus:ring-2 focus:ring-[#53A318] transition-all"
+           />
+         </div>
+@@ -403,6 +420,18 @@ export default function DealForm({ initialData, categories, seasons, onSave, isL
+           />
+         </div>
+ 
++        {/* Expiry Date */}
++        <div className="space-y-1.5">
++          <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Deal Expiry (Optional)</label>
++          <input
++            type="datetime-local"
++            value={formData.expires_at || ""}
++            onChange={(e) => setFormData({ ...formData, expires_at: e.target.value || null })}
++            className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-semibold focus:ring-2 focus:ring-[#53A318] transition-all"
++          />
++          <p className="text-[10px] text-gray-400 font-medium pl-1 italic">Leave blank for no expiry.</p>
++        </div>
++
+         <div className="flex items-center gap-6 p-4 bg-gray-100/50 rounded-2xl md:col-span-2">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+diff --git a/deploy.sh b/deploy.sh
+index d14de1c..d6437c3 100755
+--- a/deploy.sh
++++ b/deploy.sh
+@@ -179,16 +179,21 @@ if [[ -f "$SUPABASE_ENV" ]]; then
+   set_env_var "GOTRUE_MAILER_AUTOCONFIRM" "false" "$SUPABASE_ENV"
+   set_env_var "GOTRUE_MAILER_OTP_EXP" "86400" "$SUPABASE_ENV"
+   set_env_var "GOTRUE_MAILER_EXTERNAL_HOSTS" "huntmydeal.com,www.huntmydeal.com,srv1603188.hstgr.cloud" "$SUPABASE_ENV"
++  set_env_var "ADDITIONAL_REDIRECT_URLS" "https://huntmydeal.com/*" "$SUPABASE_ENV"
+   
+   # Google OAuth (Keys should be set as env vars on the VPS: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
+-  if [ -n "$GOOGLE_CLIENT_ID" ] && [ -n "$GOOGLE_CLIENT_SECRET" ]; then
++  if [[ -n "${GOOGLE_CLIENT_ID:-}" ]] && [[ -n "${GOOGLE_CLIENT_SECRET:-}" ]]; then
+     info "Enabling Google OAuth..."
+     set_env_var "GOTRUE_EXTERNAL_GOOGLE_ENABLED" "true" "$SUPABASE_ENV"
+     set_env_var "GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_ID" "$SUPABASE_ENV"
+     set_env_var "GOTRUE_EXTERNAL_GOOGLE_SECRET" "$GOOGLE_CLIENT_SECRET" "$SUPABASE_ENV"
++    set_env_var "GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI" "https://huntmydeal.com/auth/v1/callback" "$SUPABASE_ENV"
++    # Also set legacy names
++    set_env_var "GOOGLE_ENABLED" "true" "$SUPABASE_ENV"
++    set_env_var "GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_ID" "$SUPABASE_ENV"
++    set_env_var "GOOGLE_SECRET" "$GOOGLE_CLIENT_SECRET" "$SUPABASE_ENV"
+   else
+-    warn "Google OAuth keys not found in environment. Google login will be disabled."
+-    set_env_var "GOTRUE_EXTERNAL_GOOGLE_ENABLED" "false" "$SUPABASE_ENV"
++    warn "Google OAuth keys not found in environment. Skipping Google config update."
+   fi
+ 
+   info "Final Supabase Config:"
+@@ -198,10 +203,21 @@ if [[ -f "$SUPABASE_ENV" ]]; then
+   echo "  - TLS:  false"
+   echo "  - Site: https://huntmydeal.com"
+   
+-  # Restart Supabase Auth to apply SMTP and OAuth changes
++  # Patch docker-compose.yml if Google OAuth variables are commented out
++  info "Checking if docker-compose.yml needs Google OAuth uncommenting..."
++  COMPOSE_FILE="$SUPABASE_DIR/docker-compose.yml"
++  if grep -q "#[[:space:]]*GOTRUE_EXTERNAL_GOOGLE_ENABLED" "$COMPOSE_FILE"; then
++    info "Uncommenting Google OAuth lines in docker-compose.yml..."
++    # Precision patch: match the 6-space indentation followed by '#' and uncomment
++    sed -i 's/^[[:space:]]*#[[:space:]]*GOTRUE_EXTERNAL_GOOGLE/      GOTRUE_EXTERNAL_GOOGLE/' "$COMPOSE_FILE"
++    success "docker-compose.yml precision patched."
++  else
++    info "Google OAuth lines already uncommented in docker-compose.yml."
++  fi
++
++  # Restart Supabase Auth to apply SMTP and OAuth changes (Force recreate to ensure env vars are picked up)
+   info "Restarting Supabase Auth..."
+-  SUPABASE_DIR=$(dirname "$SUPABASE_ENV")
+-  (cd "$SUPABASE_DIR" && docker compose up -d auth)
++  (cd "$SUPABASE_DIR" && COMPOSE_IGNORE_ORPHANS=True docker compose -p supabase up -d --force-recreate auth)
+ 
+   
+   info "Verifying final container environment..."
