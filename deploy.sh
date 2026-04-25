@@ -130,7 +130,8 @@ fi
 
 # ── Step 8: Sync Supabase SMTP Settings ──────────────────────────────────────
 # Automatically configures the sibling Supabase instance to use our new SMTP relay
-  SUPABASE_ENV="/root/supabase/docker/.env"
+  SUPABASE_DIR="/root/supabase/docker"
+  SUPABASE_ENV="$SUPABASE_DIR/.env"
 if [[ -f "$SUPABASE_ENV" ]]; then
   info "Syncing SMTP settings to Supabase Auth..."
   
