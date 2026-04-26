@@ -249,7 +249,11 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "GOTRUE_MAILER_OTP_EXP" "86400" "$SUPABASE_ENV"
   set_env_var "GOTRUE_MAILER_EXTERNAL_HOSTS" "huntmydeal.com,www.huntmydeal.com,srv1603188.hstgr.cloud" "$SUPABASE_ENV"
   set_env_var "ADDITIONAL_REDIRECT_URLS" "https://huntmydeal.com/*" "$SUPABASE_ENV"
+  
+  # Standard GoTrue variable
   set_env_var "GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED" "true" "$SUPABASE_ENV"
+  # Supabase Docker template variable
+  set_env_var "ENABLE_ANONYMOUS_USERS" "true" "$SUPABASE_ENV"
 
   # Patch docker-compose.yml in the Supabase Docker directory
   info "Patching docker-compose.yml..."
