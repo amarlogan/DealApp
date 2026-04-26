@@ -130,11 +130,26 @@ fi
 
 # ── Step 8: Sync Supabase SMTP Settings ──────────────────────────────────────
 # Automatically configures the sibling Supabase instance to use our new SMTP relay
-  # The Supabase backend runs from this directory
-  SUPABASE_DOCKER_DIR="/root/supabase/docker"
-  SUPABASE_ENV="$SUPABASE_DOCKER_DIR/.env"
+  # Auto-discover the Supabase Docker directory from the running container
+  SUPABASE_DOCKER_DIR=$(docker inspect supabase-auth --format '{{ index .Config.Labels "com.docker.compose.project.working_dir" }}' 2>/dev/null || true)
+  
+  if [[ -z "$SUPABASE_DOCKER_DIR" ]]; then
+    # Fallback to known paths if container isn't running
+    if [[ -f "/root/supabase/docker/docker-compose.yml" ]]; then
+      SUPABASE_DOCKER_DIR="/root/supabase/docker"
+    else
+      warn "Could not auto-discover Supabase Docker directory."
+      SUPABASE_DOCKER_DIR=""
+    fi
+  fi
+
+  SUPABASE_ENV=""
+  if [[ -n "$SUPABASE_DOCKER_DIR" ]]; then
+    SUPABASE_ENV="$SUPABASE_DOCKER_DIR/.env"
+  fi
+
 if [[ -f "$SUPABASE_ENV" ]]; then
-  info "Syncing SMTP settings to Supabase Auth..."
+  info "Syncing SMTP and Auth settings to Supabase at $SUPABASE_DOCKER_DIR..."
   
   # Helper function to set or update .env values
   set_env_var() {
@@ -148,15 +163,10 @@ if [[ -f "$SUPABASE_ENV" ]]; then
     fi
   }
 
-
-
   # Use Official Hostinger SMTP (or any external provider)
-  # This completely bypasses the VPS IP blocks!
   SMTP_HOST="smtp.hostinger.com"
   SMTP_PORT="465"
   SMTP_USER="support@huntmydeal.com"
-  
-  # IMPORTANT: You must edit ../supabase/docker/.env on your server and put your REAL email password here
   SMTP_PASS="Nakhshikha@14"
 
   success "Configuring Supabase to use official external SMTP: $SMTP_HOST"
@@ -176,12 +186,17 @@ if [[ -f "$SUPABASE_ENV" ]]; then
 
   info "Searching for config.toml to enable anonymous sign-ins..."
   
-  # Patch the project's config.toml
-  SUPABASE_CONFIG_1="/root/huntmydeal/supabase/config.toml"
-  # Also patch the other Supabase config.toml if it exists
-  SUPABASE_CONFIG_2="/root/supabase/supabase/config.toml"
+  # Auto-discover the project root based on deploy.sh location
+  PROJECT_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
   
-  for CONFIG in "$SUPABASE_CONFIG_1" "$SUPABASE_CONFIG_2"; do
+  # Potential config.toml locations
+  CONFIG_CANDIDATES=(
+    "$PROJECT_ROOT/supabase/config.toml"
+    "/root/supabase/supabase/config.toml"
+    "$SUPABASE_DOCKER_DIR/../supabase/config.toml"
+  )
+  
+  for CONFIG in "${CONFIG_CANDIDATES[@]}"; do
     if [[ -f "$CONFIG" ]]; then
       info "Found config.toml at $CONFIG. Patching..."
       if grep -q '^[[:space:]]*enable_anonymous_sign_ins[[:space:]]*=' "$CONFIG"; then
@@ -252,10 +267,21 @@ if [[ -f "$SUPABASE_ENV" ]]; then
     fi
   fi
 
+  # Auto-discover the actual auth service name in the compose file
+  AUTH_SERVICE="auth"
+  if grep -q "^[[:space:]]*gotrue:" "$COMPOSE_FILE"; then
+    AUTH_SERVICE="gotrue"
+  fi
+
+  # Determine the docker compose project name from the directory
+  PROJECT_NAME=$(basename "$SUPABASE_DOCKER_DIR")
+  if docker ps --format '{{.Names}}' | grep -q "^supabase-auth$"; then
+    PROJECT_NAME="supabase"
+  fi
+
   # Restart Supabase Auth to apply SMTP and OAuth changes (Force recreate to ensure env vars are picked up)
-  # Restart Supabase Auth from the correct Docker directory
-  info "Restarting Supabase Auth..."
-  (cd "$SUPABASE_DOCKER_DIR" && COMPOSE_IGNORE_ORPHANS=True docker compose -p supabase up -d --force-recreate auth)
+  info "Restarting Supabase Auth service ($AUTH_SERVICE)..."
+  (cd "$SUPABASE_DOCKER_DIR" && COMPOSE_IGNORE_ORPHANS=True docker compose -p "$PROJECT_NAME" up -d --force-recreate "$AUTH_SERVICE")
 
   
   info "Verifying final container environment..."
