@@ -174,8 +174,14 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "GOTRUE_SMTP_PASS" "$SMTP_PASS" "$SUPABASE_ENV"
 
   info "Searching for config.toml to enable anonymous sign-ins..."
-  # Look for config.toml anywhere within the Supabase directory
-  SUPABASE_CONFIG=$(find "$SUPABASE_DIR" -name "config.toml" | head -n 1)
+  # Check common paths including the one provided: /root/supabase/supabase/config.toml
+  SUPABASE_CONFIG=""
+  if [[ -f "/root/supabase/supabase/config.toml" ]]; then
+    SUPABASE_CONFIG="/root/supabase/supabase/config.toml"
+  else
+    # Fallback to searching within the Supabase Docker directory
+    SUPABASE_CONFIG=$(find "$SUPABASE_DIR" -name "config.toml" | head -n 1)
+  fi
   
   if [[ -n "$SUPABASE_CONFIG" ]] && [[ -f "$SUPABASE_CONFIG" ]]; then
     info "Found config.toml at $SUPABASE_CONFIG. Patching..."
