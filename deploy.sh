@@ -173,21 +173,12 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "GOTRUE_SMTP_USER" "$SMTP_USER" "$SUPABASE_ENV"
   set_env_var "GOTRUE_SMTP_PASS" "$SMTP_PASS" "$SUPABASE_ENV"
 
-  # URL Configurations
-  set_env_var "API_EXTERNAL_URL" "https://huntmydeal.com" "$SUPABASE_ENV"
-  set_env_var "SITE_URL" "https://huntmydeal.com" "$SUPABASE_ENV"
-  set_env_var "GOTRUE_MAILER_URLCONFIG_SITE_URL" "https://huntmydeal.com" "$SUPABASE_ENV"
-  set_env_var "GOTRUE_MAILER_AUTOCONFIRM" "false" "$SUPABASE_ENV"
-  set_env_var "GOTRUE_MAILER_OTP_EXP" "86400" "$SUPABASE_ENV"
-  set_env_var "GOTRUE_MAILER_EXTERNAL_HOSTS" "huntmydeal.com,www.huntmydeal.com,srv1603188.hstgr.cloud" "$SUPABASE_ENV"
-  set_env_var "ADDITIONAL_REDIRECT_URLS" "https://huntmydeal.com/*" "$SUPABASE_ENV"
+  info "Searching for config.toml to enable anonymous sign-ins..."
+  # Look for config.toml anywhere within the Supabase directory
+  SUPABASE_CONFIG=$(find "$SUPABASE_DIR" -name "config.toml" | head -n 1)
   
-  # Enable Anonymous Sign-ins (required for Guest tracking)
-  set_env_var "GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED" "true" "$SUPABASE_ENV"
-  
-  info "Enabling anonymous sign-ins in config.toml..."
-  SUPABASE_CONFIG="$SUPABASE_DIR/supabase/config.toml"
-  if [[ -f "$SUPABASE_CONFIG" ]]; then
+  if [[ -n "$SUPABASE_CONFIG" ]] && [[ -f "$SUPABASE_CONFIG" ]]; then
+    info "Found config.toml at $SUPABASE_CONFIG. Patching..."
     if grep -q '^[[:space:]]*enable_anonymous_sign_ins[[:space:]]*=' "$SUPABASE_CONFIG"; then
       sed -i 's/^[[:space:]]*enable_anonymous_sign_ins[[:space:]]*=.*/enable_anonymous_sign_ins = true/' "$SUPABASE_CONFIG"
     else
@@ -207,7 +198,7 @@ if [[ -f "$SUPABASE_ENV" ]]; then
     fi
     success "config.toml updated."
   else
-    warn "config.toml not found at $SUPABASE_CONFIG. Skipping config patch."
+    warn "config.toml not found in $SUPABASE_DIR. Falling back to environment variables."
   fi
   
   # Google OAuth (Keys should be set as env vars on the VPS: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
@@ -225,23 +216,30 @@ if [[ -f "$SUPABASE_ENV" ]]; then
     warn "Google OAuth keys not found in environment. Skipping Google config update."
   fi
 
-  info "Final Supabase Config:"
-  echo "  - Host: $SMTP_HOST"
+  # URL Configurations
+  set_env_var "API_EXTERNAL_URL" "https://huntmydeal.com" "$SUPABASE_ENV"
+  set_env_var "SITE_URL" "https://huntmydeal.com" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_MAILER_URLCONFIG_SITE_URL" "https://huntmydeal.com" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_MAILER_AUTOCONFIRM" "false" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_MAILER_OTP_EXP" "86400" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_MAILER_EXTERNAL_HOSTS" "huntmydeal.com,www.huntmydeal.com,srv1603188.hstgr.cloud" "$SUPABASE_ENV"
+  set_env_var "ADDITIONAL_REDIRECT_URLS" "https://huntmydeal.com/*" "$SUPABASE_ENV"
+  set_env_var "GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED" "true" "$SUPABASE_ENV"
 
-  echo "  - Port: 25"
-  echo "  - TLS:  false"
-  echo "  - Site: https://huntmydeal.com"
-  
-  # Patch docker-compose.yml if Google OAuth variables are commented out
-  info "Checking if docker-compose.yml needs Google OAuth uncommenting..."
+  # Patch docker-compose.yml to ensure required variables are uncommented
+  info "Patching docker-compose.yml..."
   COMPOSE_FILE="$SUPABASE_DIR/docker-compose.yml"
-  if grep -q "#[[:space:]]*GOTRUE_EXTERNAL_GOOGLE_ENABLED" "$COMPOSE_FILE"; then
-    info "Uncommenting Google OAuth lines in docker-compose.yml..."
-    # Precision patch: match the 6-space indentation followed by '#' and uncomment
-    sed -i 's/^[[:space:]]*#[[:space:]]*GOTRUE_EXTERNAL_GOOGLE/      GOTRUE_EXTERNAL_GOOGLE/' "$COMPOSE_FILE"
-    success "docker-compose.yml precision patched."
-  else
-    info "Google OAuth lines already uncommented in docker-compose.yml."
+  if [[ -f "$COMPOSE_FILE" ]]; then
+    # Uncomment Google OAuth if present
+    if grep -q "#[[:space:]]*GOTRUE_EXTERNAL_GOOGLE" "$COMPOSE_FILE"; then
+      sed -i 's/^[[:space:]]*#[[:space:]]*GOTRUE_EXTERNAL_GOOGLE/      GOTRUE_EXTERNAL_GOOGLE/' "$COMPOSE_FILE"
+      success "Google OAuth lines uncommented."
+    fi
+    # Uncomment Anonymous Users if present
+    if grep -q "#[[:space:]]*GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED" "$COMPOSE_FILE"; then
+      sed -i 's/^[[:space:]]*#[[:space:]]*GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED/      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED/' "$COMPOSE_FILE"
+      success "Anonymous Users line uncommented."
+    fi
   fi
 
   # Restart Supabase Auth to apply SMTP and OAuth changes (Force recreate to ensure env vars are picked up)
