@@ -41,3 +41,61 @@ BEGIN
     SELECT o.step, o.count FROM ordered_steps o ORDER BY o.sort_order;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 3. Analytics Summary (Fixed for robustness & auth access)
+CREATE OR REPLACE FUNCTION public.get_analytics_summary()
+RETURNS JSON AS $$
+DECLARE
+    result JSON;
+BEGIN
+    SELECT json_build_object(
+        'total_views', COALESCE((SELECT count(*) FROM public.site_analytics WHERE event_type = 'page_view'), 0),
+        'total_clicks', COALESCE((SELECT count(*) FROM public.site_analytics WHERE event_type = 'get_deal_click'), 0),
+        'unique_users', COALESCE((SELECT count(DISTINCT user_id) FROM public.site_analytics), 0),
+        'anonymous_users', COALESCE((SELECT count(DISTINCT s.user_id) FROM public.site_analytics s LEFT JOIN auth.users u ON s.user_id = u.id WHERE u.email IS NULL), 0),
+        'today_views', COALESCE((SELECT count(*) FROM public.site_analytics WHERE event_type = 'page_view' AND created_at > now() - interval '24 hours'), 0),
+        'today_clicks', COALESCE((SELECT count(*) FROM public.site_analytics WHERE event_type = 'get_deal_click' AND created_at > now() - interval '24 hours'), 0)
+    ) INTO result;
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, auth;
+
+-- 4. Category Performance (Fixed to parse path for historical data)
+CREATE OR REPLACE FUNCTION public.get_category_analytics()
+RETURNS TABLE(category_id TEXT, views BIGINT, clicks BIGINT, ctr NUMERIC) AS $$
+BEGIN
+    RETURN QUERY
+    WITH normalized_analytics AS (
+        SELECT 
+            s.event_type,
+            COALESCE(s.category_id, 
+                CASE 
+                    WHEN s.path LIKE '/category/%' THEN split_part(s.path, '/', 3)
+                    ELSE NULL 
+                END
+            ) as cat_id
+        FROM public.site_analytics s
+    ),
+    view_counts AS (
+        SELECT cat_id as category_id, count(*) as v_count
+        FROM normalized_analytics
+        WHERE event_type = 'page_view' AND cat_id IS NOT NULL AND cat_id != ''
+        GROUP BY cat_id
+    ),
+    click_counts AS (
+        SELECT cat_id as category_id, count(*) as c_count
+        FROM normalized_analytics
+        WHERE event_type = 'get_deal_click' AND cat_id IS NOT NULL AND cat_id != ''
+        GROUP BY cat_id
+    )
+    SELECT 
+        vc.category_id,
+        vc.v_count as views,
+        COALESCE(cc.c_count, 0) as clicks,
+        CASE WHEN vc.v_count > 0 THEN ROUND((COALESCE(cc.c_count, 0)::NUMERIC / vc.v_count::NUMERIC) * 100, 2) ELSE 0 END as ctr
+    FROM view_counts vc
+    LEFT JOIN click_counts cc ON vc.category_id = cc.category_id
+    ORDER BY views DESC
+    LIMIT 10;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
