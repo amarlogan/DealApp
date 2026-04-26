@@ -207,19 +207,23 @@ if [[ -f "$SUPABASE_ENV" ]]; then
     warn "config.toml not found in $SUPABASE_DIR. Falling back to environment variables."
   fi
   
-  # Google OAuth (Keys should be set as env vars on the VPS: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
-  if [[ -n "${GOOGLE_CLIENT_ID:-}" ]] && [[ -n "${GOOGLE_CLIENT_SECRET:-}" ]]; then
+  # Google OAuth Keys (Hardcoded for automated deployment)
+  GOOGLE_CLIENT_ID="403627788826-fsoquiq8ctrt7g44640belkpo44c1pjh.apps.googleusercontent.com"
+  GOOGLE_CLIENT_SECRET="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"
+
+  if [[ -n "$GOOGLE_CLIENT_ID" ]] && [[ -n "$GOOGLE_CLIENT_SECRET" ]]; then
     info "Enabling Google OAuth..."
     set_env_var "GOTRUE_EXTERNAL_GOOGLE_ENABLED" "true" "$SUPABASE_ENV"
     set_env_var "GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_ID" "$SUPABASE_ENV"
     set_env_var "GOTRUE_EXTERNAL_GOOGLE_SECRET" "$GOOGLE_CLIENT_SECRET" "$SUPABASE_ENV"
     set_env_var "GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI" "https://huntmydeal.com/auth/v1/callback" "$SUPABASE_ENV"
+    set_env_var "GOTRUE_EXTERNAL_GOOGLE_SKIP_NONCE_CHECK" "true" "$SUPABASE_ENV"
     # Also set legacy names
     set_env_var "GOOGLE_ENABLED" "true" "$SUPABASE_ENV"
     set_env_var "GOOGLE_CLIENT_ID" "$GOOGLE_CLIENT_ID" "$SUPABASE_ENV"
     set_env_var "GOOGLE_SECRET" "$GOOGLE_CLIENT_SECRET" "$SUPABASE_ENV"
   else
-    warn "Google OAuth keys not found in environment. Skipping Google config update."
+    warn "Google OAuth keys not found. Skipping Google config update."
   fi
 
   # URL Configurations

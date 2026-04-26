@@ -326,8 +326,8 @@ email_optional = false
 
 [auth.external.google]
 enabled = true
-client_id = "your-google-client-id"
-secret = "your-google-client-secret"
+client_id = "403627788826-fsoquiq8ctrt7g44640belkpo44c1pjh.apps.googleusercontent.com"
+secret = "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"
 # If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
 skip_nonce_check = true
 
