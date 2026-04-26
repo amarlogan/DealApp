@@ -130,7 +130,8 @@ fi
 
 # ── Step 8: Sync Supabase SMTP Settings ──────────────────────────────────────
 # Automatically configures the sibling Supabase instance to use our new SMTP relay
-  SUPABASE_DIR="/root/supabase/docker"
+  # Use the correct project paths for HuntMyDeal
+  SUPABASE_DIR="/root/huntmydeal"
   SUPABASE_ENV="$SUPABASE_DIR/.env"
 if [[ -f "$SUPABASE_ENV" ]]; then
   info "Syncing SMTP settings to Supabase Auth..."
@@ -174,12 +175,11 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "GOTRUE_SMTP_PASS" "$SMTP_PASS" "$SUPABASE_ENV"
 
   info "Searching for config.toml to enable anonymous sign-ins..."
-  # Check common paths including the one provided: /root/supabase/supabase/config.toml
-  SUPABASE_CONFIG=""
-  if [[ -f "/root/supabase/supabase/config.toml" ]]; then
-    SUPABASE_CONFIG="/root/supabase/supabase/config.toml"
-  else
-    # Fallback to searching within the Supabase Docker directory
+  # Use the exact project path provided by the user
+  SUPABASE_CONFIG="/root/huntmydeal/supabase/config.toml"
+  
+  if [[ ! -f "$SUPABASE_CONFIG" ]]; then
+    # Fallback to searching within the project directory if the exact path is missing
     SUPABASE_CONFIG=$(find "$SUPABASE_DIR" -name "config.toml" | head -n 1)
   fi
   
@@ -254,7 +254,8 @@ if [[ -f "$SUPABASE_ENV" ]]; then
 
   # Restart Supabase Auth to apply SMTP and OAuth changes (Force recreate to ensure env vars are picked up)
   info "Restarting Supabase Auth..."
-  (cd "$SUPABASE_DIR" && COMPOSE_IGNORE_ORPHANS=True docker compose -p supabase up -d --force-recreate auth)
+  # We use -p supabase to match the self-hosted project name, or the default if not specified
+  (cd "$SUPABASE_DIR" && COMPOSE_IGNORE_ORPHANS=True docker compose up -d --force-recreate auth)
 
   
   info "Verifying final container environment..."
