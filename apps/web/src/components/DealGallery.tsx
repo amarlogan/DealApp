@@ -67,7 +67,7 @@ export default function DealGallery({
         <DealImage 
           src={activeImage} 
           alt={`${title} - image ${currentIndex + 1}`}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+          className="w-full h-full object-contain p-6 group-hover:scale-110 transition-transform duration-1000"
           fallbackIconSize={60}
         />
         
@@ -125,11 +125,11 @@ export default function DealGallery({
               key={i} 
               type="button"
               onClick={() => setCurrentIndex(i)}
-              className={`w-16 h-16 rounded-xl border-2 shadow-sm overflow-hidden flex-shrink-0 cursor-pointer transition-all ${
+              className={`w-16 h-16 rounded-xl border-2 shadow-sm overflow-hidden flex-shrink-0 cursor-pointer transition-all bg-white ${
                 currentIndex === i ? "border-[var(--primary)] scale-105" : "border-white opacity-50 hover:opacity-100"
               }`}
             >
-              <img src={img} className="w-full h-full object-cover" alt={`${title} - image ${i + 1}`} />
+              <img src={img} className="w-full h-full object-contain p-1" alt={`${title} - image ${i + 1}`} />
             </button>
           ))}
         </div>

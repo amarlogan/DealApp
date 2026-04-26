@@ -112,11 +112,11 @@ export default function DealCard({
       />
 
       {/* ── Image ── */}
-      <div className={`relative ${imgH} w-full overflow-hidden bg-gray-100`}>
+      <div className={`relative ${imgH} w-full overflow-hidden bg-white`}>
         <DealImage
           src={deal.image_url}
           alt={deal.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-700"
           fallbackClassName={`w-full h-full bg-gradient-to-br ${fallback} flex items-center justify-center`}
           fallbackIconSize={44}
         />
