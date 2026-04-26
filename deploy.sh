@@ -130,9 +130,9 @@ fi
 
 # ── Step 8: Sync Supabase SMTP Settings ──────────────────────────────────────
 # Automatically configures the sibling Supabase instance to use our new SMTP relay
-  # Use the correct project paths for HuntMyDeal
-  SUPABASE_DIR="/root/huntmydeal"
-  SUPABASE_ENV="$SUPABASE_DIR/.env"
+  # The Supabase backend runs from this directory
+  SUPABASE_DOCKER_DIR="/root/supabase/docker"
+  SUPABASE_ENV="$SUPABASE_DOCKER_DIR/.env"
 if [[ -f "$SUPABASE_ENV" ]]; then
   info "Syncing SMTP settings to Supabase Auth..."
   
@@ -175,37 +175,37 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "GOTRUE_SMTP_PASS" "$SMTP_PASS" "$SUPABASE_ENV"
 
   info "Searching for config.toml to enable anonymous sign-ins..."
-  # Use the exact project path provided by the user
-  SUPABASE_CONFIG="/root/huntmydeal/supabase/config.toml"
   
-  if [[ ! -f "$SUPABASE_CONFIG" ]]; then
-    # Fallback to searching within the project directory if the exact path is missing
-    SUPABASE_CONFIG=$(find "$SUPABASE_DIR" -name "config.toml" | head -n 1)
-  fi
+  # Patch the project's config.toml
+  SUPABASE_CONFIG_1="/root/huntmydeal/supabase/config.toml"
+  # Also patch the other Supabase config.toml if it exists
+  SUPABASE_CONFIG_2="/root/supabase/supabase/config.toml"
   
-  if [[ -n "$SUPABASE_CONFIG" ]] && [[ -f "$SUPABASE_CONFIG" ]]; then
-    info "Found config.toml at $SUPABASE_CONFIG. Patching..."
-    if grep -q '^[[:space:]]*enable_anonymous_sign_ins[[:space:]]*=' "$SUPABASE_CONFIG"; then
-      sed -i 's/^[[:space:]]*enable_anonymous_sign_ins[[:space:]]*=.*/enable_anonymous_sign_ins = true/' "$SUPABASE_CONFIG"
-    else
-      awk '
-        BEGIN { inserted=0 }
-        /^\[auth\]$/ && !inserted {
-          print
-          print "enable_anonymous_sign_ins = true"
-          inserted=1
-          next
-        }
-        { print }
-        END {
-          if (!inserted) print "[auth]\nenable_anonymous_sign_ins = true"
-        }
-      ' "$SUPABASE_CONFIG" > "$SUPABASE_CONFIG.tmp" && mv "$SUPABASE_CONFIG.tmp" "$SUPABASE_CONFIG"
+  for CONFIG in "$SUPABASE_CONFIG_1" "$SUPABASE_CONFIG_2"; do
+    if [[ -f "$CONFIG" ]]; then
+      info "Found config.toml at $CONFIG. Patching..."
+      if grep -q '^[[:space:]]*enable_anonymous_sign_ins[[:space:]]*=' "$CONFIG"; then
+        sed -i 's/^[[:space:]]*enable_anonymous_sign_ins[[:space:]]*=.*/enable_anonymous_sign_ins = true/' "$CONFIG"
+      else
+        awk '
+          BEGIN { inserted=0 }
+          /^\[auth\]$/ && !inserted {
+            print
+            print "enable_anonymous_sign_ins = true"
+            inserted=1
+            next
+          }
+          { print }
+          END {
+            if (!inserted) print "[auth]\nenable_anonymous_sign_ins = true"
+          }
+        ' "$CONFIG" > "${CONFIG}.tmp" && mv "${CONFIG}.tmp" "$CONFIG"
+      fi
+      success "config.toml updated at $CONFIG."
     fi
-    success "config.toml updated."
-  else
-    warn "config.toml not found in $SUPABASE_DIR. Falling back to environment variables."
-  fi
+  done
+  
+  
   
   # Google OAuth Keys (Hardcoded for automated deployment)
   GOOGLE_CLIENT_ID="403627788826-fsoquiq8ctrt7g44640belkpo44c1pjh.apps.googleusercontent.com"
@@ -236,9 +236,9 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "ADDITIONAL_REDIRECT_URLS" "https://huntmydeal.com/*" "$SUPABASE_ENV"
   set_env_var "GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED" "true" "$SUPABASE_ENV"
 
-  # Patch docker-compose.yml to ensure required variables are uncommented
+  # Patch docker-compose.yml in the Supabase Docker directory
   info "Patching docker-compose.yml..."
-  COMPOSE_FILE="$SUPABASE_DIR/docker-compose.yml"
+  COMPOSE_FILE="$SUPABASE_DOCKER_DIR/docker-compose.yml"
   if [[ -f "$COMPOSE_FILE" ]]; then
     # Uncomment Google OAuth if present
     if grep -q "#[[:space:]]*GOTRUE_EXTERNAL_GOOGLE" "$COMPOSE_FILE"; then
@@ -253,9 +253,9 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   fi
 
   # Restart Supabase Auth to apply SMTP and OAuth changes (Force recreate to ensure env vars are picked up)
+  # Restart Supabase Auth from the correct Docker directory
   info "Restarting Supabase Auth..."
-  # We use -p supabase to match the self-hosted project name, or the default if not specified
-  (cd "$SUPABASE_DIR" && COMPOSE_IGNORE_ORPHANS=True docker compose up -d --force-recreate auth)
+  (cd "$SUPABASE_DOCKER_DIR" && COMPOSE_IGNORE_ORPHANS=True docker compose -p supabase up -d --force-recreate auth)
 
   
   info "Verifying final container environment..."
