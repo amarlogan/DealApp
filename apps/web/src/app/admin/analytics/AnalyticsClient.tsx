@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase";
 import { 
   BarChart3, Users, MousePointer2, Eye, 
   TrendingUp, ArrowUpRight, Activity, Globe, 
@@ -12,13 +13,31 @@ import { formatDistanceToNow } from "date-fns";
 export default function AnalyticsClient({ 
   initialStats, 
   recentEvents,
-  categoryStats 
+  categoryStats,
+  priceRanges,
+  funnelStats
 }: { 
   initialStats: any; 
   recentEvents: any[];
   categoryStats: any[];
+  priceRanges?: any[];
+  funnelStats?: any[];
 }) {
   const [timeRange, setTimeRange] = useState("24h");
+  const [liveEvents, setLiveEvents] = useState<any[]>(recentEvents);
+
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase.channel('realtime_analytics')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'site_analytics' }, (payload) => {
+        setLiveEvents((current) => [payload.new, ...current].slice(0, 20));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const cards = [
     { label: "Total Page Views", value: initialStats.total_views, sub: initialStats.today_views, icon: Eye, color: "text-blue-600", bg: "bg-blue-50" },
@@ -139,9 +158,9 @@ export default function AnalyticsClient({
           </div>
 
           <div className="flex-1 overflow-y-auto divide-y divide-gray-50 max-h-[600px] scrollbar-none">
-            {recentEvents.length === 0 ? (
+            {liveEvents.length === 0 ? (
                <div className="p-12 text-center text-gray-300 font-bold uppercase tracking-widest text-xs">Waiting for events...</div>
-            ) : recentEvents.map((event, i) => (
+            ) : liveEvents.map((event, i) => (
               <div key={i} className="p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex items-start gap-4">
                   <div className={`mt-1 w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
@@ -171,6 +190,51 @@ export default function AnalyticsClient({
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Additional Analytics (Funnel & Price) ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden p-8">
+          <h2 className="text-xl font-black text-gray-900 mb-6">Conversion Funnel</h2>
+          <div className="space-y-4">
+             {funnelStats?.map((step, i) => {
+                const maxCount = Math.max(...(funnelStats.map(s => s.count) || [1]));
+                const pct = (step.count / maxCount) * 100;
+                return (
+                  <div key={i}>
+                    <div className="flex justify-between text-sm font-bold text-gray-700 mb-1">
+                      <span>{step.step}</span>
+                      <span>{step.count}</span>
+                    </div>
+                    <div className="h-4 bg-gray-50 rounded-full overflow-hidden">
+                       <div className="h-full bg-blue-500 rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                )
+             })}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden p-8">
+          <h2 className="text-xl font-black text-gray-900 mb-6">Price Range Clicks</h2>
+          <div className="space-y-4">
+             {priceRanges?.map((bucket, i) => {
+                const maxClicks = Math.max(...(priceRanges.map(b => b.clicks) || [1]));
+                const pct = (bucket.clicks / maxClicks) * 100;
+                return (
+                  <div key={i}>
+                    <div className="flex justify-between text-sm font-bold text-gray-700 mb-1">
+                      <span>{bucket.price_range}</span>
+                      <span>{bucket.clicks} clicks</span>
+                    </div>
+                    <div className="h-4 bg-gray-50 rounded-full overflow-hidden">
+                       <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                )
+             })}
           </div>
         </div>
       </div>

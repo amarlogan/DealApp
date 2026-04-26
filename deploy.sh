@@ -182,6 +182,9 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   set_env_var "GOTRUE_MAILER_EXTERNAL_HOSTS" "huntmydeal.com,www.huntmydeal.com,srv1603188.hstgr.cloud" "$SUPABASE_ENV"
   set_env_var "ADDITIONAL_REDIRECT_URLS" "https://huntmydeal.com/*" "$SUPABASE_ENV"
   
+  # Enable Anonymous Sign-ins (required for Guest tracking)
+  set_env_var "GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED" "true" "$SUPABASE_ENV"
+  
   # Google OAuth (Keys should be set as env vars on the VPS: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
   if [[ -n "${GOOGLE_CLIENT_ID:-}" ]] && [[ -n "${GOOGLE_CLIENT_SECRET:-}" ]]; then
     info "Enabling Google OAuth..."

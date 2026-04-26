@@ -17,11 +17,19 @@ export default async function AnalyticsPage() {
   // 3. Fetch Top Categories by Views
   const { data: categoryStats } = await supabase.rpc('get_category_analytics');
 
+  // 4. Fetch Price Range Data
+  const { data: priceRanges } = await supabase.rpc('get_price_range_analytics');
+
+  // 5. Fetch Funnel Data
+  const { data: funnelStats } = await supabase.rpc('get_funnel_analytics');
+
   return (
     <AnalyticsClient 
       initialStats={stats || {}} 
       recentEvents={recentEvents || []}
       categoryStats={categoryStats || []}
+      priceRanges={priceRanges || []}
+      funnelStats={funnelStats || []}
     />
   );
 }
