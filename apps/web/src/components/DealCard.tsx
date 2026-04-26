@@ -40,7 +40,7 @@ export default function DealCard({
   const toggleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!user) { openLogin(); return; }
+    if (!user || user.is_anonymous) { openLogin(); return; }
     const next = !isSaved;
     setIsSaved(next);
     await fetch("/api/favorites", {
@@ -53,7 +53,7 @@ export default function DealCard({
   const setAlert = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!user) { openLogin(); return; }
+    if (!user || user.is_anonymous) { openLogin(); return; }
     setAlertSet(true);
     await fetch("/api/alerts", {
       method: "POST",
@@ -86,7 +86,7 @@ export default function DealCard({
   const handleQuickLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!user) { openLogin(); return; }
+    if (!user || user.is_anonymous) { openLogin(); return; }
     if (hasLiked) return;
 
     setHasLiked(true);

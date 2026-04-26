@@ -17,7 +17,7 @@ export default function DealActions({ dealId, initialIsSaved, title }: DealActio
   const [isCopied, setIsCopied] = useState(false);
 
   const toggleSave = async () => {
-    if (!user) {
+    if (!user || user.is_anonymous) {
       openLogin();
       return;
     }

@@ -11,7 +11,7 @@ export default function MobileBottomNav({ onSearchOpen }: { onSearchOpen: () => 
   const { user, openLogin } = useAuth();
 
   const handleAuthNav = (e: React.MouseEvent, href: string) => {
-    if (!user) {
+    if (!user || user.is_anonymous) {
       e.preventDefault();
       openLogin();
     }

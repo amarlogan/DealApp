@@ -32,7 +32,7 @@ export default function VotingSection({
   const [submitting, setSubmitting] = useState(false);
 
   const handleVote = async (value: number) => {
-    if (!user) {
+    if (!user || user.is_anonymous) {
       openLogin();
       return;
     }

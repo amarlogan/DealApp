@@ -19,7 +19,7 @@ export default function UserMenu() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  if (!user) {
+  if (!user || user.is_anonymous) {
     return (
       <button
         id="signin-btn"

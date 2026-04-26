@@ -45,7 +45,7 @@ export default function CommentSection({ dealId }: { dealId: string }) {
   };
 
   const handleSubmit = async (content: string, parentId: string | null = null) => {
-    if (!user) {
+    if (!user || user.is_anonymous) {
       openLogin();
       return;
     }

@@ -47,7 +47,7 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 3000);
   };
 
-  if (!user) {
+  if (!user || user.is_anonymous) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 animate-in">
         <div className="text-6xl">⚙️</div>

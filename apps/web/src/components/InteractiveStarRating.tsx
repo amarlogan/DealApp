@@ -37,7 +37,7 @@ export default function InteractiveStarRating({
 
   const handleRate = async (value: number) => {
     if (readOnly) return;
-    if (!user) {
+    if (!user || user.is_anonymous) {
       openLogin();
       return;
     }

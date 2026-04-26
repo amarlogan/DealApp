@@ -69,7 +69,7 @@ export default function NotificationBell() {
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
-  if (!user) return null;
+  if (!user || user.is_anonymous) return null;
 
   return (
     <div className="relative" ref={containerRef}>

@@ -28,7 +28,7 @@ export default function ProfilePage() {
     });
   }, [user]);
 
-  if (!user) {
+  if (!user || user.is_anonymous) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <div className="text-6xl">🔒</div>
