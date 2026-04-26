@@ -185,6 +185,31 @@ if [[ -f "$SUPABASE_ENV" ]]; then
   # Enable Anonymous Sign-ins (required for Guest tracking)
   set_env_var "GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED" "true" "$SUPABASE_ENV"
   
+  info "Enabling anonymous sign-ins in config.toml..."
+  SUPABASE_CONFIG="$SUPABASE_DIR/supabase/config.toml"
+  if [[ -f "$SUPABASE_CONFIG" ]]; then
+    if grep -q '^[[:space:]]*enable_anonymous_sign_ins[[:space:]]*=' "$SUPABASE_CONFIG"; then
+      sed -i 's/^[[:space:]]*enable_anonymous_sign_ins[[:space:]]*=.*/enable_anonymous_sign_ins = true/' "$SUPABASE_CONFIG"
+    else
+      awk '
+        BEGIN { inserted=0 }
+        /^\[auth\]$/ && !inserted {
+          print
+          print "enable_anonymous_sign_ins = true"
+          inserted=1
+          next
+        }
+        { print }
+        END {
+          if (!inserted) print "[auth]\nenable_anonymous_sign_ins = true"
+        }
+      ' "$SUPABASE_CONFIG" > "$SUPABASE_CONFIG.tmp" && mv "$SUPABASE_CONFIG.tmp" "$SUPABASE_CONFIG"
+    fi
+    success "config.toml updated."
+  else
+    warn "config.toml not found at $SUPABASE_CONFIG. Skipping config patch."
+  fi
+  
   # Google OAuth (Keys should be set as env vars on the VPS: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET)
   if [[ -n "${GOOGLE_CLIENT_ID:-}" ]] && [[ -n "${GOOGLE_CLIENT_SECRET:-}" ]]; then
     info "Enabling Google OAuth..."
