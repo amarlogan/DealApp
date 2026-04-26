@@ -202,14 +202,27 @@ export default function AnalyticsClient({
              {funnelStats?.map((step, i) => {
                 const maxCount = Math.max(...(funnelStats.map(s => s.count) || [1]));
                 const pct = (step.count / maxCount) * 100;
+                const prevCount = i > 0 ? funnelStats[i - 1].count : null;
+                const dropoff = prevCount && prevCount > 0 ? Math.round((step.count / prevCount) * 100) : null;
+                
                 return (
-                  <div key={i}>
-                    <div className="flex justify-between text-sm font-bold text-gray-700 mb-1">
-                      <span>{step.step}</span>
+                  <div key={i} className="relative">
+                    {i > 0 && (
+                       <div className="absolute -top-4 left-4 h-4 w-px bg-gray-200" />
+                    )}
+                    <div className="flex items-center justify-between text-sm font-bold text-gray-700 mb-1">
+                      <div className="flex items-center gap-2">
+                        <span>{step.step}</span>
+                        {dropoff !== null && (
+                          <span className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-full font-black">
+                            {dropoff}% conversion
+                          </span>
+                        )}
+                      </div>
                       <span>{step.count}</span>
                     </div>
                     <div className="h-4 bg-gray-50 rounded-full overflow-hidden">
-                       <div className="h-full bg-blue-500 rounded-full" style={{ width: `${pct}%` }} />
+                       <div className={`h-full rounded-full transition-all duration-1000 ${i === 0 ? 'bg-blue-500' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 )

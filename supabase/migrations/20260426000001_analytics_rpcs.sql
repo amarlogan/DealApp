@@ -33,8 +33,11 @@ CREATE OR REPLACE FUNCTION public.get_funnel_analytics()
 RETURNS TABLE(step TEXT, count BIGINT) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 'Views' as step, count(*) as count FROM public.site_analytics WHERE event_type = 'page_view'
-    UNION ALL
-    SELECT 'Clicks' as step, count(*) as count FROM public.site_analytics WHERE event_type = 'get_deal_click';
+    WITH ordered_steps AS (
+        SELECT 'Views' as step, count(*) as count, 1 as sort_order FROM public.site_analytics WHERE event_type = 'page_view'
+        UNION ALL
+        SELECT 'Clicks' as step, count(*) as count, 2 as sort_order FROM public.site_analytics WHERE event_type = 'get_deal_click'
+    )
+    SELECT o.step, o.count FROM ordered_steps o ORDER BY o.sort_order;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
