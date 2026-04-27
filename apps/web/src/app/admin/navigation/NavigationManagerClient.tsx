@@ -77,7 +77,14 @@ export default function NavigationManagerClient({ initialItems, categories }: Na
         body: JSON.stringify({
           action: editingItem ? "update" : "create",
           id: editingItem?.id,
-          data: { ...data, sort_order: editingItem?.sort_order || (items.length + 1) * 10 }
+          data: {
+            category_id: data.category_id,
+            label_override: data.label_override,
+            href: data.href,
+            is_visible: data.is_visible,
+            is_highlighted: data.is_highlighted,
+            sort_order: editingItem?.sort_order || (items.length + 1) * 10
+          }
         }),
       });
 

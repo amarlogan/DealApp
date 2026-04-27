@@ -29,7 +29,16 @@ export default function CategoriesManagerClient({ initialCategories }: { initial
         body: JSON.stringify({
           action: editingCategory ? "update" : "create",
           catId: editingCategory?.id,
-          data
+          data: {
+            id: data.id,
+            label: data.label,
+            emoji: data.emoji,
+            description: data.description,
+            is_active: data.is_active,
+            sort_order: data.sort_order,
+            show_in_nav: data.show_in_nav,
+            show_on_home: data.show_on_home
+          }
         }),
       });
 
