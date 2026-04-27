@@ -3,7 +3,9 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Create a view that enrichment categories with their active deal count
-CREATE OR REPLACE VIEW categories_enriched AS
+CREATE OR REPLACE VIEW categories_enriched 
+WITH (security_invoker = true)
+AS
 SELECT 
     c.*,
     (

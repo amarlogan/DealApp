@@ -3,7 +3,9 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- 1. Update the view to remove phase but keep active_deal_count
-CREATE OR REPLACE VIEW categories_enriched AS
+CREATE OR REPLACE VIEW categories_enriched 
+WITH (security_invoker = true)
+AS
 SELECT 
     c.id,
     c.label,
