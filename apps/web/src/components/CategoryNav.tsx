@@ -64,8 +64,8 @@ export default function CategoryNav({ navs }: { navs: any[] }) {
           const activeCount = nav.categories?.active_deal_count || 0;
           const href = nav.href || (nav.category_id ? `/category/${nav.category_id}` : "#");
 
-          // Only show categories that have active items
-          if (activeCount === 0) return null;
+          // Only hide if it's a category item AND it has no active items
+          if (nav.category_id && activeCount === 0) return null;
 
           return (
             <a
