@@ -65,8 +65,25 @@ export default async function DealsPage({
 
   const [{ data: dealsData }, { data: categoriesData }] = await Promise.all([
     query.limit(24).order("created_at", { ascending: false }),
-    supabaseAdmin.from("categories").select("id, label, emoji").eq("is_active", true).order("sort_order", { ascending: true })
+    supabaseAdmin
+      .from("categories")
+      .select(`
+        id, label, emoji,
+        deals ( count )
+      `)
+      .eq("is_active", true)
+      .eq("deals.status", "active")
+      .eq("deals.in_stock", true)
+      .order("sort_order", { ascending: true })
   ]);
+
+  // Filter categories to only those with active deals
+  const filteredCategories = (categoriesData || [])
+    .map(cat => ({
+      ...cat,
+      active_deal_count: (cat as any).deals?.[0]?.count || 0
+    }))
+    .filter(cat => cat.active_deal_count > 0);
 
   const enrichedDeals = (dealsData || []).map((deal: any) => ({
     ...deal,
@@ -82,7 +99,7 @@ export default async function DealsPage({
       initialSeason={season}
       initialSeasonName={seasonName}
       initialFeatured={isFeatured}
-      allCategories={categoriesData || []}
+      allCategories={filteredCategories as any}
     />
   );
 }

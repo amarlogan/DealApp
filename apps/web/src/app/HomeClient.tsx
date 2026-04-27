@@ -31,7 +31,7 @@ type Deal = {
 };
 
 // Extracted from DB types
-type UICategory = { id: string; label: string; emoji: string; phase: number; description?: string; deal_count?: number };
+type UICategory = { id: string; label: string; emoji: string; description?: string; deal_count?: number };
 type UISeason = { id: string; name: string; css_variables: any };
 type LandingSection = { 
   id: string; 
@@ -183,7 +183,6 @@ export default function HomeClient({
   hubDeals = [],
   landingSections,
   topCategories,
-  upcomingCategories,
   heroSlides = [],
   favoriteIds = []
 }: { 
@@ -191,7 +190,6 @@ export default function HomeClient({
   hubDeals?: Deal[];
   landingSections: LandingSection[];
   topCategories: UICategory[];
-  upcomingCategories: UICategory[];
   heroSlides?: HeroSlide[];
   favoriteIds?: string[];
 }) {
@@ -495,26 +493,21 @@ export default function HomeClient({
 
         {(() => {
           const refilling = topCategories.filter(c => c.deal_count === 0);
-          const combined = [...refilling, ...upcomingCategories];
-          if (combined.length === 0) return null;
+          if (refilling.length === 0) return null;
           return (
             <div className="section-box text-center py-10 bg-gray-50/50 border-dashed border-2 border-gray-200">
               <h2 className="text-xl font-black text-gray-900 mb-2">More Categories Coming Soon 🚀</h2>
               <p className="text-gray-500 text-sm mb-6 max-w-md mx-auto">We're constantly hunting for more discounts! These categories are being refilled or prepared for launch.</p>
               <div className="flex justify-center flex-wrap gap-3">
-                {combined.map(cat => {
-                  const isRefilling = (cat as any).deal_count === 0 && (cat as any).is_active;
-                  return (
+                {refilling.map(cat => (
                     <div key={cat.id} className="flex items-center gap-2 bg-white border border-gray-100 shadow-sm text-gray-600 px-4 py-2.5 rounded-full text-sm font-bold transition-all hover:scale-105">
                       {cat.emoji} {cat.label} 
-                      <span className={`text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter ${
-                        isRefilling ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700 font-black"
-                      }`}>
-                        {isRefilling ? "Refilling" : "Soon"}
+                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter bg-amber-100 text-amber-700">
+                        Refilling
                       </span>
                     </div>
-                  );
-                })}
+                  )
+                )}
               </div>
             </div>
           );

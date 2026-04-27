@@ -8,31 +8,27 @@ export type Category = {
   label: string;
   emoji: string;
   description: string;
-  phase: 1 | 2;  // 2 = coming soon (local/service deals)
 };
 
 export const CATEGORIES: Category[] = [
-  { id: 'electronics',  label: 'Electronics',          emoji: '⚡',  description: 'TVs, headphones, phones & more',    phase: 1 },
-  { id: 'home-kitchen', label: 'Home & Kitchen',        emoji: '🏠',  description: 'Appliances, cookware & décor',      phase: 1 },
-  { id: 'fashion',      label: 'Fashion & Apparel',     emoji: '👗',  description: 'Clothing, suits & accessories',     phase: 1 },
-  { id: 'shoes',        label: 'Shoes & Sneakers',      emoji: '👟',  description: 'Nike, Adidas & top brands',         phase: 1 },
-  { id: 'sports',       label: 'Sports & Outdoors',     emoji: '🏃',  description: 'Fitness, camping & adventure',      phase: 1 },
-  { id: 'toys',         label: 'Toys & Games',          emoji: '🧸',  description: 'Kids, games & entertainment',       phase: 1 },
-  { id: 'beauty',       label: 'Beauty & Personal Care',emoji: '💄',  description: 'Skincare, makeup & grooming',       phase: 2 },
-  { id: 'food',         label: 'Food & Dining',         emoji: '🍽️', description: 'Restaurants & food subscriptions', phase: 2 },
-  { id: 'travel',       label: 'Travel & Hotels',       emoji: '✈️',  description: 'Flights, hotels & experiences',    phase: 2 },
-  { id: 'auto',         label: 'Auto & Tools',          emoji: '🔧',  description: 'Car accessories & hardware',        phase: 2 },
-  { id: 'health',       label: 'Health & Wellness',    emoji: '💊',  description: 'Vitamins, fitness & care',          phase: 1 },
-  { id: 'pets',         label: 'Pet Supplies',         emoji: '🐶',  description: 'Food, toys & accessories',          phase: 1 },
-  { id: 'books',        label: 'Books & Audible',      emoji: '📚',  description: 'Bestsellers & audiobooks',          phase: 1 },
-  { id: 'software',     label: 'Software & Apps',      emoji: '💻',  description: 'Subscriptions & digital goods',     phase: 1 },
-  { id: 'gaming',       label: 'Video Games',          emoji: '🎮',  description: 'Consoles, PC & accessories',        phase: 1 },
-  { id: 'grocery',      label: 'Groceries & Daily',    emoji: '🛒',  description: 'Pantry staples & fresh food',       phase: 1 },
-  { id: 'office',       label: 'Office Supplies',      emoji: '📎',  description: 'Desks, chairs & stationery',        phase: 1 },
+  { id: 'electronics',  label: 'Electronics',          emoji: '⚡',  description: 'TVs, headphones, phones & more' },
+  { id: 'home-kitchen', label: 'Home & Kitchen',        emoji: '🏠',  description: 'Appliances, cookware & décor' },
+  { id: 'fashion',      label: 'Fashion & Apparel',     emoji: '👗',  description: 'Clothing, suits & accessories' },
+  { id: 'shoes',        label: 'Shoes & Sneakers',      emoji: '👟',  description: 'Nike, Adidas & top brands' },
+  { id: 'sports',       label: 'Sports & Outdoors',     emoji: '🏃',  description: 'Fitness, camping & adventure' },
+  { id: 'toys',         label: 'Toys & Games',          emoji: '🧸',  description: 'Kids, games & entertainment' },
+  { id: 'beauty',       label: 'Beauty & Personal Care',emoji: '💄',  description: 'Skincare, makeup & grooming' },
+  { id: 'food',         label: 'Food & Dining',         emoji: '🍽️', description: 'Restaurants & food subscriptions' },
+  { id: 'travel',       label: 'Travel & Hotels',       emoji: '✈️',  description: 'Flights, hotels & experiences' },
+  { id: 'auto',         label: 'Auto & Tools',          emoji: '🔧',  description: 'Car accessories & hardware' },
+  { id: 'health',       label: 'Health & Wellness',    emoji: '💊',  description: 'Vitamins, fitness & care' },
+  { id: 'pets',         label: 'Pet Supplies',         emoji: '🐶',  description: 'Food, toys & accessories' },
+  { id: 'books',        label: 'Books & Audible',      emoji: '📚',  description: 'Bestsellers & audiobooks' },
+  { id: 'software',     label: 'Software & Apps',      emoji: '💻',  description: 'Subscriptions & digital goods' },
+  { id: 'gaming',       label: 'Video Games',          emoji: '🎮',  description: 'Consoles, PC & accessories' },
+  { id: 'grocery',      label: 'Groceries & Daily',    emoji: '🛒',  description: 'Pantry staples & fresh food' },
+  { id: 'office',       label: 'Office Supplies',      emoji: '📎',  description: 'Desks, chairs & stationery' },
 ];
-
-export const ACTIVE_CATEGORIES   = CATEGORIES.filter(c => c.phase === 1);
-export const UPCOMING_CATEGORIES = CATEGORIES.filter(c => c.phase === 2);
 
 export const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
 

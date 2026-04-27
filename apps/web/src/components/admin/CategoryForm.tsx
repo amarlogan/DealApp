@@ -15,7 +15,6 @@ export default function CategoryForm({ initialData, onSave, isLoading }: Categor
     label: "",
     emoji: "🏷️",
     description: "",
-    phase: 1,
     is_active: true,
     sort_order: 0,
     show_in_nav: false,
@@ -97,18 +96,7 @@ export default function CategoryForm({ initialData, onSave, isLoading }: Categor
           />
         </div>
 
-        {/* Phase & Sort Order */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Rollout Phase</label>
-          <select
-            value={formData.phase}
-            onChange={(e) => setFormData({ ...formData, phase: parseInt(e.target.value) })}
-            className="w-full bg-gray-50 border-none rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-[#53A318] transition-all"
-          >
-            <option value={1}>Phase 1 (Active)</option>
-            <option value={2}>Phase 2 (Coming Soon)</option>
-          </select>
-        </div>
+        {/* Sort Order */}
 
         <div className="space-y-1.5">
           <label className="text-xs font-black text-gray-400 uppercase tracking-widest pl-1">Sort Order Index</label>

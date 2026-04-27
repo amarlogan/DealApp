@@ -37,17 +37,33 @@ import ResponsiveShell from "@/components/ResponsiveShell";
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const supabase = createSupabaseAdmin();
   
-  // Fetch dynamic navigation mapping
+  // Fetch dynamic navigation mapping with active product check
   const { data: navItems } = await supabase
     .from("navigation_items")
     .select(`
       id, href, label_override, is_highlighted, sort_order, category_id,
-      categories ( id, label, emoji, phase )
+      categories ( 
+        id, label, emoji,
+        deals ( count )
+      )
     `)
     .eq("is_visible", true)
+    .eq("categories.deals.status", "active")
+    .eq("categories.deals.in_stock", true)
     .order("sort_order", { ascending: true });
 
-  const navs = navItems || [];
+  // Post-process to inject deal count logic
+  const navs = (navItems || []).map(item => {
+    const deals = (item.categories as any)?.deals;
+    const count = Array.isArray(deals) ? deals[0]?.count : (deals?.count || 0);
+    return {
+      ...item,
+      categories: item.categories ? {
+        ...item.categories,
+        active_deal_count: count
+      } : null
+    };
+  });
 
   // Fetch active season
   const today = new Date().toISOString().split('T')[0];

@@ -40,7 +40,7 @@ export default async function Home() {
     .from("landing_sections")
     .select(`
       id, title, sort_order, category_id, season_id, max_items,
-      categories ( id, label, emoji, phase ),
+      categories ( id, label, emoji ),
       seasons ( id, name, css_variables )
     `)
     .eq("is_visible", true)
@@ -55,7 +55,7 @@ export default async function Home() {
     .from("categories")
     .select(`
       *,
-      deal_count:deals(count)
+      deals ( count )
     `)
     .eq("is_active", true)
     .eq("deals.status", "active")
@@ -63,20 +63,15 @@ export default async function Home() {
     .order("sort_order", { ascending: true })
     .limit(50);
 
-  // Transform to make deal_count a single number
-  const topCategories = (categoriesData || []).map(cat => ({
-    ...cat,
-    deal_count: (cat as any).deal_count?.[0]?.count || 0
-  }));
+  // Transform to make deal_count a single number and filter
+  const topCategories = (categoriesData || [])
+    .map(cat => ({
+      ...cat,
+      deal_count: (cat as any).deals?.[0]?.count || 0
+    }))
+    .filter(cat => cat.deal_count > 0);
 
-  // 4. Fetch Coming Soon Categories
-  const { data: upcomingData } = await supabaseAdmin
-    .from("categories")
-    .select("*")
-    .eq("phase", 2)
-    .order("sort_order", { ascending: true });
-
-  // 5. Fetch Hero Slides
+  // 4. Fetch Hero Slides
   const { data: heroSlidesData } = await supabaseAdmin
     .from("hero_slides")
     .select("*")
@@ -98,8 +93,7 @@ export default async function Home() {
       initialDeals={dealsData || []} 
       hubDeals={hubDealsData || []} // For mobile hub
       landingSections={(sectionsData as any) || []}
-      topCategories={categoriesData || []}
-      upcomingCategories={upcomingData || []}
+      topCategories={topCategories as any}
       heroSlides={heroSlidesData || []}
       favoriteIds={favoriteIds}
     />

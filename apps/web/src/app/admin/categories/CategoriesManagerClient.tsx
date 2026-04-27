@@ -12,15 +12,12 @@ export default function CategoriesManagerClient({ initialCategories }: { initial
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [phaseFilter, setPhaseFilter] = useState<number | 'all'>('all');
 
   const router = useRouter();
 
   const filteredCategories = categories.filter(cat => {
-    const matchesSearch = cat.label.toLowerCase().includes(search.toLowerCase()) || 
-                          cat.id.toLowerCase().includes(search.toLowerCase());
-    const matchesPhase = phaseFilter === 'all' || cat.phase === phaseFilter;
-    return matchesSearch && matchesPhase;
+    return cat.label.toLowerCase().includes(search.toLowerCase()) || 
+           cat.id.toLowerCase().includes(search.toLowerCase());
   });
 
   const handleSave = async (data: any) => {
@@ -83,14 +80,6 @@ export default function CategoriesManagerClient({ initialCategories }: { initial
             className="w-full pl-11 pr-4 py-2.5 rounded-2xl bg-gray-50 border-none text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-[#53A318] transition-all"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={() => setPhaseFilter(prev => prev === 'all' ? 1 : prev === 1 ? 2 : 'all')}
-            className="px-4 py-2.5 rounded-2xl bg-gray-50 text-gray-600 text-sm font-bold flex items-center gap-2 hover:bg-gray-100 transition-colors"
-          >
-            <Filter size={14} /> Phase: {phaseFilter === 'all' ? 'All' : `Phase ${phaseFilter}`}
-          </button>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -104,11 +93,6 @@ export default function CategoriesManagerClient({ initialCategories }: { initial
                 {cat.emoji || "🏷️"}
               </div>
               <div className="flex flex-col items-end gap-1.5">
-                <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full ${
-                  cat.phase === 1 ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
-                }`}>
-                  Phase {cat.phase}
-                </span>
                 <span className="text-[10px] font-bold text-gray-400">Order: {cat.sort_order}</span>
               </div>
             </div>

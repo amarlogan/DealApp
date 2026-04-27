@@ -9,7 +9,6 @@ export default async function AdminCategoriesPage() {
     supabase
       .from("categories")
       .select("*")
-      .order("phase", { ascending: true })
       .order("sort_order", { ascending: true }),
     supabase
       .from("navigation_items")

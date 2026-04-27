@@ -74,8 +74,7 @@ export default function SettingsPage() {
               <button
                 key={cat.id}
                 onClick={() => toggleInterest(cat.id)}
-                disabled={cat.phase === 2}
-                className={`flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all text-left disabled:opacity-40 disabled:cursor-not-allowed ${
+                className={`flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all text-left ${
                   selected
                     ? "border-[#53A318] bg-[#f0f9e8] text-[#53A318]"
                     : "border-gray-200 hover:border-gray-300 text-gray-700"
@@ -84,7 +83,6 @@ export default function SettingsPage() {
                 <span className="text-2xl">{cat.emoji}</span>
                 <div>
                   <p className="text-sm font-bold leading-tight">{cat.label}</p>
-                  {cat.phase === 2 && <p className="text-xs text-gray-400 font-medium">Coming soon</p>}
                 </div>
                 {selected && <CheckCircle size={16} className="ml-auto flex-shrink-0 text-[#53A318]" />}
               </button>

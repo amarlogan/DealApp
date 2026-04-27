@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS categories (
     label               TEXT        NOT NULL,
     emoji               TEXT        NOT NULL,
     description         TEXT,
-    phase               INTEGER     DEFAULT 1,   -- 1 = active, 2 = coming soon
     is_active           BOOLEAN     DEFAULT true,
     sort_order          INTEGER     DEFAULT 0,
     created_at          TIMESTAMPTZ DEFAULT NOW(),
@@ -21,32 +20,31 @@ DROP POLICY IF EXISTS read_all_categories ON categories;
 CREATE POLICY read_all_categories ON categories FOR SELECT USING (true);
 
 -- Seed Categories
-INSERT INTO categories (id, label, emoji, description, phase, sort_order) VALUES
-('electronics',  'Electronics',          '⚡',  'TVs, headphones, phones & more',    1, 10),
-('home-kitchen', 'Home & Kitchen',       '🏠',  'Appliances, cookware & decor',      1, 20),
-('fashion',      'Fashion & Apparel',    '👗',  'Clothing, suits & accessories',     1, 30),
-('shoes',        'Shoes & Sneakers',     '👟',  'Nike, Adidas & top brands',         1, 40),
-('sports',       'Sports & Outdoors',    '🏃',  'Fitness, camping & adventure',      1, 50),
-('toys',         'Toys & Games',         '🧸',  'Kids, games & entertainment',       1, 60),
-('beauty',       'Beauty & Personal Care','💄', 'Skincare, makeup & grooming',       2, 70),
-('food',         'Food & Dining',        '🍽️', 'Restaurants & food subscriptions',  2, 80),
-('travel',       'Travel & Hotels',      '✈️',  'Flights, hotels & experiences',     2, 90),
-('auto',         'Auto & Tools',         '🔧',  'Car accessories & hardware',        2, 100),
-('health',       'Health & Wellness',    '💊', 'Vitamins, fitness & care',          1, 110),
-('pets',         'Pet Supplies',         '🐶', 'Food, toys & accessories',          1, 120),
-('books',        'Books & Audible',      '📚', 'Bestsellers & audiobooks',          1, 130),
-('software',     'Software & Apps',      '💻', 'Subscriptions & digital goods',     1, 140),
-('gaming',       'Video Games',          '🎮', 'Consoles, PC & accessories',        1, 150),
-('grocery',      'Groceries & Daily',    '🛒', 'Pantry staples & fresh food',       1, 160),
-('office',       'Office Supplies',      '📎', 'Desks, chairs & stationery',        1, 170)
+INSERT INTO categories (id, label, emoji, description, sort_order) VALUES
+('electronics',  'Electronics',          '⚡',  'TVs, headphones, phones & more',    10),
+('home-kitchen', 'Home & Kitchen',       '🏠',  'Appliances, cookware & decor',      20),
+('fashion',      'Fashion & Apparel',    '👗',  'Clothing, suits & accessories',     30),
+('shoes',        'Shoes & Sneakers',     '👟',  'Nike, Adidas & top brands',         40),
+('sports',       'Sports & Outdoors',    '🏃',  'Fitness, camping & adventure',      50),
+('toys',         'Toys & Games',         '🧸',  'Kids, games & entertainment',       60),
+('beauty',       'Beauty & Personal Care','💄', 'Skincare, makeup & grooming',       70),
+('food',         'Food & Dining',        '🍽️', 'Restaurants & food subscriptions',  80),
+('travel',       'Travel & Hotels',      '✈️',  'Flights, hotels & experiences',     90),
+('auto',         'Auto & Tools',         '🔧',  'Car accessories & hardware',        100),
+('health',       'Health & Wellness',    '💊', 'Vitamins, fitness & care',          110),
+('pets',         'Pet Supplies',         '🐶', 'Food, toys & accessories',          120),
+('books',        'Books & Audible',      '📚', 'Bestsellers & audiobooks',          130),
+('software',     'Software & Apps',      '💻', 'Subscriptions & digital goods',     140),
+('gaming',       'Video Games',          '🎮', 'Consoles, PC & accessories',        150),
+('grocery',      'Groceries & Daily',    '🛒', 'Pantry staples & fresh food',       160),
+('office',       'Office Supplies',      '📎', 'Desks, chairs & stationery',        170)
 ON CONFLICT (id) DO UPDATE SET 
     label = EXCLUDED.label, 
-    emoji = EXCLUDED.emoji,
-    phase = EXCLUDED.phase;
+    emoji = EXCLUDED.emoji;
 
 -- Create 'other' category for unresolved deals to enforce FK constraint safely
-INSERT INTO categories (id, label, emoji, description, phase, is_active, sort_order) 
-VALUES ('other', 'Other Deals', '🏷️', 'Miscellaneous deals', 1, false, 999) 
+INSERT INTO categories (id, label, emoji, description, is_active, sort_order) 
+VALUES ('other', 'Other Deals', '🏷️', 'Miscellaneous deals', false, 999) 
 ON CONFLICT (id) DO NOTHING;
 
 -- Map Deals Category ID securely
@@ -116,7 +114,7 @@ ALTER TABLE landing_sections ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS read_all_landing ON landing_sections;
 CREATE POLICY read_all_landing ON landing_sections FOR SELECT USING (is_visible = true);
 
--- Seed Landing Page Categories (Phase 1 components)
+-- Seed Landing Page Categories
 INSERT INTO landing_sections (category_id, title, sort_order) VALUES
 ('electronics', NULL, 10),
 ('home-kitchen', NULL, 20),

@@ -61,17 +61,11 @@ export default function CategoryNav({ navs }: { navs: any[] }) {
         {navs.map((nav: any) => {
           const label = nav.label_override || (nav.categories?.label ?? "Unknown");
           const isHighlighted = nav.is_highlighted;
-          const isUpcoming = nav.categories?.phase === 2;
+          const activeCount = nav.categories?.active_deal_count || 0;
           const href = nav.href || (nav.category_id ? `/category/${nav.category_id}` : "#");
 
-          if (isUpcoming) {
-            return (
-              <span key={nav.id} title="Coming soon!" className="shrink-0 py-1.5 px-3 text-sm font-semibold whitespace-nowrap rounded-full text-gray-400 flex items-center gap-1.5 cursor-not-allowed select-none">
-                {nav.categories?.emoji} {label}
-                <span className="coming-soon-badge">Soon</span>
-              </span>
-            );
-          }
+          // Only show categories that have active items
+          if (activeCount === 0) return null;
 
           return (
             <a

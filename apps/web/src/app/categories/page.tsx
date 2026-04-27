@@ -11,12 +11,22 @@ export default async function CategoriesPage() {
     .from("navigation_items")
     .select(`
       id, label_override, category_id, href,
-      categories ( id, label, emoji, description )
+      categories ( 
+        id, label, emoji, description,
+        deals ( count )
+      )
     `)
     .eq("is_visible", true)
+    .eq("categories.deals.status", "active")
+    .eq("categories.deals.in_stock", true)
     .order("sort_order", { ascending: true });
 
-  const categories = navItems || [];
+  // Filter to only those with active deals
+  const categories = (navItems || []).filter((item: any) => {
+    const deals = item.categories?.deals;
+    const count = Array.isArray(deals) ? deals[0]?.count : (deals?.count || 0);
+    return count > 0;
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
